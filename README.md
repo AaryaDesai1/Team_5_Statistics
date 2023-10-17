@@ -16,9 +16,9 @@ To-Do List for EDA Report:
 metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, log GDP per capita, social support, freedom, perception of corrpution, generosity) predict life ladder (outcome variable: categorical)?
 
 2. **Outcome Variables**
-   - [ ] Generate a plot for each outcome variable.
-   - [ ] Ensure the plots are well-labeled and described.
-   - [ ] Use variable descriptions in labels (e.g., "Salary ($)" instead of "salary_in_usd").
+   - [ ] Generate a plot for each outcome variable. (Cassie)
+   - [ ] Ensure the plots are well-labeled and described. (Cassie)
+   - [ ] Use variable descriptions in labels (e.g., "Salary ($)" instead of "salary_in_usd"). (Cassie)
 
 3. **Primary Relationships of Interest**
    - [ ] For the dependent variable and primary independent variable (if applicable):
