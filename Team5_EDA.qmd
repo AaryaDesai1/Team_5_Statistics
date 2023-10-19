@@ -89,7 +89,7 @@ glimpse(merged_data)
 ```{r}
 # remove columns that are unreadbale and full of NA values
 merged_data <- merged_data %>%
-  select(-...11, -`Unique Countries`)
+    select(-...11, -`Unique Countries`)
 ```
 
 ```{r}
@@ -97,7 +97,7 @@ glimpse(merged_data)
 ```
 
 ```{r}
-# drop all rows that have NA values 
+# drop all rows that have NA values
 merged_data <- na.omit(merged_data)
 
 glimpse(merged_data)
@@ -111,7 +111,7 @@ num_variables_merged_data <- ncol(merged_data)
 
 print(sample_size_merged_data)
 print(num_variables_merged_data)
-# ADD DATA SOURCE HERE 
+# ADD DATA SOURCE HERE
 ```
 
 ```{r}
@@ -129,31 +129,30 @@ print(num_variables_merged_data)
 ```{r}
 # Define a function to calculate descriptive statistics
 calculate_descriptive_stats <- function(data) {
-  
-  # Get the names of numeric columns
-  numeric_columns <- names(data)[sapply(data, is.numeric)]
-  
-  # Initialize a list to store results
-  results <- list()
-  
-  # Loop through numeric columns
-  for (col in numeric_columns) {
-    stats <- summary(data[[col]])
-    mean_val <- mean(data[[col]])
-    median_val <- median(data[[col]])
-    sd_val <- sd(data[[col]])
-    ci_val <- t.test(data[[col]])$conf.int
-    
-    results[[col]] <- list(
-      Summary = stats,
-      Mean = mean_val,
-      Median = median_val,
-      StandardDeviation = sd_val,
-      ConfidenceInterval = ci_val
-    )
-  }
-  
-  return(results)
+    # Get the names of numeric columns
+    numeric_columns <- names(data)[sapply(data, is.numeric)]
+
+    # Initialize a list to store results
+    results <- list()
+
+    # Loop through numeric columns
+    for (col in numeric_columns) {
+        stats <- summary(data[[col]])
+        mean_val <- mean(data[[col]])
+        median_val <- median(data[[col]])
+        sd_val <- sd(data[[col]])
+        ci_val <- t.test(data[[col]])$conf.int
+
+        results[[col]] <- list(
+            Summary = stats,
+            Mean = mean_val,
+            Median = median_val,
+            StandardDeviation = sd_val,
+            ConfidenceInterval = ci_val
+        )
+    }
+
+    return(results)
 }
 ```
 
@@ -161,13 +160,13 @@ calculate_descriptive_stats <- function(data) {
 descriptive_stats <- calculate_descriptive_stats(merged_data)
 
 for (col in names(descriptive_stats)) {
-  cat("Descriptive Statistics for", col, ":\n")
-  cat("- Summary:\n")
-  print(descriptive_stats[[col]]$Summary)
-  cat("- Mean:", descriptive_stats[[col]]$Mean, "\n")
-  cat("- Median:", descriptive_stats[[col]]$Median, "\n")
-  cat("- Standard Deviation:", descriptive_stats[[col]]$StandardDeviation, "\n")
-  cat("- 95% Confidence Interval:", descriptive_stats[[col]]$ConfidenceInterval, "\n\n")
+    cat("Descriptive Statistics for", col, ":\n")
+    cat("- Summary:\n")
+    print(descriptive_stats[[col]]$Summary)
+    cat("- Mean:", descriptive_stats[[col]]$Mean, "\n")
+    cat("- Median:", descriptive_stats[[col]]$Median, "\n")
+    cat("- Standard Deviation:", descriptive_stats[[col]]$StandardDeviation, "\n")
+    cat("- 95% Confidence Interval:", descriptive_stats[[col]]$ConfidenceInterval, "\n\n")
 }
 ```
 
@@ -176,11 +175,25 @@ for (col in names(descriptive_stats)) {
 library(ggplot2)
 
 ggplot(merged_data, aes(x = `Life Ladder`, y = `Log GDP per capita`)) +
-  geom_point() +
-  labs(x = "Life Ladder", y = "Log GDP per capita", title = "Scatter Plot")
+    geom_point() +
+    labs(x = "Life Ladder", y = "Log GDP per capita", title = "Scatter Plot")
 ```
 
 ```{r}
-# Provide clear descriptions of findings. 
-# Like what are we doing here? I'm not even sure. 
+# Provide clear descriptions of findings.
+# Like what are we doing here? I'm not even sure.
+```
+
+```{r}
+detailed_variable_types <- sapply(merged_data, function(x) typeof(x))
+
+# Print the detailed variable types
+print(detailed_variable_types)
+```
+
+```{r}
+# Entity -> categorical varaible for country? 
+# Life ladder -> categorical variable
+# Year -> continous variable 
+# rest of varaibles are basically continous variables
 ```

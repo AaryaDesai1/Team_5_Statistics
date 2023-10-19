@@ -23,21 +23,21 @@ metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders,
 3. **Primary Relationships of Interest**
    - [x] For the dependent variable and primary independent variable (if applicable):
      + [x] Present descriptive statistics (mean, median, mode, CIs, etc. _PLS ADD HERE BASED ON WHAT YOU THINK IS NECESSARY_)
-     + [maybe] Create exploratory plots (tables or figures).
-     + [maybe] Provide clear descriptions of findings.
+     + [`not sure what is expected here need clarification`] Create exploratory plots (tables or figures).
+     + [`not sure what is expected here need clarification`] Provide clear descriptions of findings.
 
 4. **Other Characteristics**
-   - [ ] Briefly describe the types of variables present in the data (e.g., demographic information).
-   - [ ] Avoid listing all variables if there are many.
+   - [x] Briefly describe the types of variables present in the data (e.g., demographic information).
+   - [x] Avoid listing all variables if there are many.
 
 5. **Potential Challenges**
    - [ ] Identify potential challenges in the data that may affect modeling. (AARYA)
    - [ ] Consider categorical variables that might need collapsing. (_Included in Data Cleaning_)
-   - [ ] Address missingness, especially in key variables.
-   - [ ] Discuss any issues related to dataset size and its impact on model selection. (AARYA)
+   - [`I dropped alot of rows when merging so we should discuss this`] Address missingness, especially in key variables.
+   - [`I dropped alot of rows when merging so we should discuss this`] Discuss any issues related to dataset size and its impact on model selection. (AARYA)
 
 6. **No Data Cleaning (Except if Necessary)**
-   - [ ] Perform data cleaning only if needed, such as combining datasets or creating an outcome variable. (_Mentioned above for categorical variable. I dont think we need anything else._)
+   - [x] Perform data cleaning only if needed, such as combining datasets or creating an outcome variable. (_Mentioned above for categorical variable. I dont think we need anything else._)
 
 ### For Later:
 
