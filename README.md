@@ -6,11 +6,11 @@ To-Do List for EDA Report:
 ### Complete this weekend (1-5):
 
 1. **Data Overview**
-   - [ ] Merge Datasets to create one dataset to work on.
+   - [x] Merge Datasets to create one dataset to work on.
    - [ ] Clean (we need to create categorical variable for life ladder).
-   - [ ] Provide sample size, number of variables, and data source.
-   - [ ] Include a brief description of how the data was collected.
-   - [ ] Clearly state the research questions.
+   - [x] Provide sample size, number of variables, and data source.
+   - [x] Include a brief description of how the data was collected.
+   - [x] Clearly state the research questions.
         + To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depression (outcome variable: continuous) in countries?
         + To what extent do mental health disorders and happiness
 metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, log GDP per capita, social support, freedom, perception of corrpution, generosity) predict life ladder (outcome variable: categorical)?
@@ -21,10 +21,10 @@ metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders,
    - [ ] Use variable descriptions in labels (e.g., "Salary ($)" instead of "salary_in_usd"). (Cassie)
 
 3. **Primary Relationships of Interest**
-   - [ ] For the dependent variable and primary independent variable (if applicable):
-     + [ ] Present descriptive statistics (mean, median, mode, CIs, etc. _PLS ADD HERE BASED ON WHAT YOU THINK IS NECESSARY_)
-     + [ ] Create exploratory plots (tables or figures).
-     + [ ] Provide clear descriptions of findings.
+   - [x] For the dependent variable and primary independent variable (if applicable):
+     + [x] Present descriptive statistics (mean, median, mode, CIs, etc. _PLS ADD HERE BASED ON WHAT YOU THINK IS NECESSARY_)
+     + [maybe] Create exploratory plots (tables or figures).
+     + [maybe] Provide clear descriptions of findings.
 
 4. **Other Characteristics**
    - [ ] Briefly describe the types of variables present in the data (e.g., demographic information).

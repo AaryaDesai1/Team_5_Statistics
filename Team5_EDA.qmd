@@ -1,0 +1,186 @@
+---
+title: "Team 5 EDA"
+format: html
+editor: visual
+---
+
+## EDA Team5
+
+```{r}
+library(dplyr)
+library(readxl)
+```
+
+```{r}
+Happiness_Data <- read_xls("~/Downloads/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("~/Downloads/Mental health Depression disorder Data.xlsx")
+```
+
+```{r}
+glimpse(Happiness_Data)
+```
+
+```{r}
+glimpse(Mental_Health_Data)
+```
+
+```{r}
+# Show unique values of a column
+unique_values_happiness <- unique(Happiness_Data$`Country name`)
+
+# Print the unique values
+print(unique_values_happiness)
+```
+
+```{r}
+# Show unique values of a column
+unique_values_mental <- unique(Mental_Health_Data$Entity)
+
+# Print the unique values
+print(unique_values_mental)
+```
+
+```{r}
+# Find elements that are common in both vectors
+common_elements <- intersect(unique_values_mental, unique_values_happiness)
+
+# Print the common elements
+print(common_elements)
+```
+
+```{r}
+Happiness_Data <- Happiness_Data[Happiness_Data$`Country name` %in% common_elements, ]
+
+```
+
+```{r}
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$`Entity` %in% common_elements, ]
+```
+
+```{r}
+unique_years_happy <- unique(Happiness_Data$year)
+print(unique_years_happy)
+```
+
+```{r}
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$Year %in% unique_years_happy, ]
+```
+
+```{r}
+glimpse(Mental_Health_Data)
+```
+
+```{r}
+glimpse(Happiness_Data)
+```
+
+```{r}
+# Merge the datasets based on "Entity" and "Year"
+merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"), all.x = TRUE)
+
+# Check the structure of the merged dataset
+str(merged_data)
+```
+
+```{r}
+glimpse(merged_data)
+```
+
+```{r}
+# remove columns that are unreadbale and full of NA values
+merged_data <- merged_data %>%
+  select(-...11, -`Unique Countries`)
+```
+
+```{r}
+glimpse(merged_data)
+```
+
+```{r}
+# drop all rows that have NA values 
+merged_data <- na.omit(merged_data)
+
+glimpse(merged_data)
+```
+
+```{r}
+#  Provide sample size, number of variables, and data source.
+
+sample_size_merged_data <- nrow(merged_data)
+num_variables_merged_data <- ncol(merged_data)
+
+print(sample_size_merged_data)
+print(num_variables_merged_data)
+# ADD DATA SOURCE HERE 
+```
+
+```{r}
+#  Include a brief description of how the data was collected.
+
+# i have no idea
+```
+
+-    Clearly state the research questions.
+
+    -   To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depression (outcome variable: continuous) in countries?
+
+    -   To what extent do mental health disorders and happiness metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, log GDP per capita, social support, freedom, perception of corrpution, generosity) predict life ladder (outcome variable: categorical)?
+
+```{r}
+# Define a function to calculate descriptive statistics
+calculate_descriptive_stats <- function(data) {
+  
+  # Get the names of numeric columns
+  numeric_columns <- names(data)[sapply(data, is.numeric)]
+  
+  # Initialize a list to store results
+  results <- list()
+  
+  # Loop through numeric columns
+  for (col in numeric_columns) {
+    stats <- summary(data[[col]])
+    mean_val <- mean(data[[col]])
+    median_val <- median(data[[col]])
+    sd_val <- sd(data[[col]])
+    ci_val <- t.test(data[[col]])$conf.int
+    
+    results[[col]] <- list(
+      Summary = stats,
+      Mean = mean_val,
+      Median = median_val,
+      StandardDeviation = sd_val,
+      ConfidenceInterval = ci_val
+    )
+  }
+  
+  return(results)
+}
+```
+
+```{r}
+descriptive_stats <- calculate_descriptive_stats(merged_data)
+
+for (col in names(descriptive_stats)) {
+  cat("Descriptive Statistics for", col, ":\n")
+  cat("- Summary:\n")
+  print(descriptive_stats[[col]]$Summary)
+  cat("- Mean:", descriptive_stats[[col]]$Mean, "\n")
+  cat("- Median:", descriptive_stats[[col]]$Median, "\n")
+  cat("- Standard Deviation:", descriptive_stats[[col]]$StandardDeviation, "\n")
+  cat("- 95% Confidence Interval:", descriptive_stats[[col]]$ConfidenceInterval, "\n\n")
+}
+```
+
+```{r}
+# Create exploratory plots (tables or figures).
+library(ggplot2)
+
+ggplot(merged_data, aes(x = `Life Ladder`, y = `Log GDP per capita`)) +
+  geom_point() +
+  labs(x = "Life Ladder", y = "Log GDP per capita", title = "Scatter Plot")
+```
+
+```{r}
+# Provide clear descriptions of findings. 
+# Like what are we doing here? I'm not even sure. 
+```
