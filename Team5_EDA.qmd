@@ -201,3 +201,18 @@ print(detailed_variable_types)
 # for vscode
 View(merged_data)
 ```
+
+```{r}
+hist(merged_data$`Life Ladder`)
+```
+
+```{r}
+# change life ladder to categorical variable 
+median_life_ladder <- median(merged_data$`Life Ladder`)
+# Create a new variable based on the median
+merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= median_life_ladder, 1, 0)
+
+# rename levels with labelss
+merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Below Average Lifestyle", "Above Average Lifestyle"))
+
+```
