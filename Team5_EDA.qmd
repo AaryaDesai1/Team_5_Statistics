@@ -196,4 +196,5 @@ print(detailed_variable_types)
 # Life ladder -> categorical variable
 # Year -> continous variable 
 # rest of varaibles are basically continous variables
+# test push
 ```
