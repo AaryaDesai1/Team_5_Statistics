@@ -12,8 +12,8 @@ library(readxl)
 ```
 
 ```{r}
-Happiness_Data <- read_xls("~/Downloads/DataFortable2.1WHR2023.xls")
-Mental_Health_Data <- read_xlsx("~/Downloads/Mental health Depression disorder Data.xlsx")
+Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
 ```
 
 ```{r}
