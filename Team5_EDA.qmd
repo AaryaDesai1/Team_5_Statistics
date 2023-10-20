@@ -192,9 +192,11 @@ print(detailed_variable_types)
 ```
 
 ```{r}
-# Entity -> categorical varaible for country? 
+# Entity -> categorical varaible for country?
 # Life ladder -> categorical variable
-# Year -> continous variable 
+# Year -> continous variable
 # rest of varaibles are basically continous variables
 # test push
+# for vscode
+View(merged_data)
 ```
