@@ -76,7 +76,8 @@ glimpse(Happiness_Data)
 
 ```{r}
 # Merge the datasets based on "Entity" and "Year"
-merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"), all.x = TRUE)
+merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"))
+
 
 # Check the structure of the merged dataset
 str(merged_data)
@@ -98,7 +99,7 @@ glimpse(merged_data)
 
 ```{r}
 # drop all rows that have NA values
-merged_data <- na.omit(merged_data)
+# merged_data <- na.omit(merged_data)
 
 glimpse(merged_data)
 ```
