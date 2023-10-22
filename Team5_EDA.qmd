@@ -268,3 +268,91 @@ ggplot(merged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) 
   theme_minimal()
 
 ```
+
+
+
+```{r}
+
+# Group the data by the 'Entity' (countries) column
+grouped_data <- merged_data %>%
+  group_by(Entity)
+
+# Calculate the average for the selected variables
+averaged_data <- grouped_data %>%
+  summarise(
+    `Perceptions of corruption` = mean(`Perceptions of corruption`, na.rm = TRUE),
+    Generosity = mean(Generosity , na.rm = TRUE),
+    `Freedom to make life choices` = mean(`Freedom to make life choices`, na.rm = TRUE),
+    `Healthy life expectancy at birth` = mean(`Healthy life expectancy at birth`, na.rm = TRUE),
+    `Social support` = mean(`Social support`, na.rm = TRUE),
+    `Log GDP per capita` = mean(`Log GDP per capita`, na.rm = TRUE),
+    `Depression (%)` = mean(`Depression (%)`, na.rm = TRUE)
+  )
+
+# View the resulting dataset with averages
+View(averaged_data)
+```
+
+```{r}
+
+# Scatter plot for 'Depression (%)' vs 'Log GDP per capita'
+ggplot(averaged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
+    geom_point() +
+    labs(
+        title = "Scatter Plot: Depression (%) vs Log GDP per capita",
+        x = "Depression (%)",
+        y = "Log GDP per capita"
+    ) +
+    theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Social support'
+ggplot(averaged_data, aes(x = `Depression (%)`, y = `Social support`)) +
+    geom_point() +
+    labs(
+        title = "Scatter Plot: Depression (%) vs Social support",
+        x = "Depression (%)",
+        y = "Social support"
+    ) +
+    theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Healthy life expectancy at birth'
+ggplot(averaged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
+    geom_point() +
+    labs(
+        title = "Scatter Plot: Depression (%) vs Healthy life expectancy at birth",
+        x = "Depression (%)",
+        y = "Healthy life expectancy at birth"
+    ) +
+    theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Freedom to make life choices'
+ggplot(averaged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
+    geom_point() +
+    labs(
+        title = "Scatter Plot: Depression (%) vs Freedom to make life choices",
+        x = "Depression (%)",
+        y = "Freedom to make life choices"
+    ) +
+    theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Generosity'
+ggplot(averaged_data, aes(x = `Depression (%)`, y = Generosity)) +
+    geom_point() +
+    labs(
+        title = "Scatter Plot: Depression (%) vs Generosity",
+        x = "Depression (%)",
+        y = "Generosity"
+    ) +
+    theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Perceptions of corruption'
+ggplot(averaged_data, aes(x = `Depression (%)`, y = exp(`Perceptions of corruption`))) +
+    geom_point() +
+    labs(
+        title = "Scatter Plot: Depression (%) vs Perceptions of corruption",
+        x = "Depression (%)",
+        y = "Perceptions of corruption"
+    ) +
+    theme_minimal()
+
+```
