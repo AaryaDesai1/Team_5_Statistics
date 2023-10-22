@@ -216,3 +216,55 @@ merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= median_l
 merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Below Average Lifestyle", "Above Average Lifestyle"))
 
 ```
+
+```{r}
+
+# Scatter plot for 'Depression (%)' vs 'Log GDP per capita'
+ggplot(merged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
+  geom_point() +
+  labs(title = 'Scatter Plot: Depression (%) vs Log GDP per capita',
+       x = 'Depression (%)',
+       y = 'Log GDP per capita') +
+  theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Social support'
+ggplot(merged_data, aes(x = `Depression (%)`, y = `Social support`)) +
+  geom_point() +
+  labs(title = 'Scatter Plot: Depression (%) vs Social support',
+       x = 'Depression (%)',
+       y = 'Social support') +
+  theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Healthy life expectancy at birth'
+ggplot(merged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
+  geom_point() +
+  labs(title = 'Scatter Plot: Depression (%) vs Healthy life expectancy at birth',
+       x = 'Depression (%)',
+       y = 'Healthy life expectancy at birth') +
+  theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Freedom to make life choices'
+ggplot(merged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
+  geom_point() +
+  labs(title = 'Scatter Plot: Depression (%) vs Freedom to make life choices',
+       x = 'Depression (%)',
+       y = 'Freedom to make life choices') +
+  theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Generosity'
+ggplot(merged_data, aes(x = `Depression (%)`, y = Generosity)) +
+  geom_point() +
+  labs(title = 'Scatter Plot: Depression (%) vs Generosity',
+       x = 'Depression (%)',
+       y = 'Generosity') +
+  theme_minimal()
+
+# Scatter plot for 'Depression (%)' vs 'Perceptions of corruption'
+ggplot(merged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) +
+  geom_point() +
+  labs(title = 'Scatter Plot: Depression (%) vs Perceptions of corruption',
+       x = 'Depression (%)',
+       y = 'Perceptions of corruption') +
+  theme_minimal()
+
+```
