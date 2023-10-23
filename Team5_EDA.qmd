@@ -12,8 +12,8 @@ library(readxl)
 ```
 
 ```{r}
-Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
-Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
+Happiness_Data <- read_xls("DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("Mental health Depression disorder Data.xlsx")
 ```
 
 ```{r}
@@ -269,10 +269,7 @@ ggplot(merged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) 
 
 ```
 
-
-
 ```{r}
-
 # Group the data by the 'Entity' (countries) column
 grouped_data <- merged_data %>%
   group_by(Entity)
@@ -294,7 +291,6 @@ View(averaged_data)
 ```
 
 ```{r}
-
 # Scatter plot for 'Depression (%)' vs 'Log GDP per capita'
 ggplot(averaged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
     geom_point() +
@@ -354,5 +350,72 @@ ggplot(averaged_data, aes(x = `Depression (%)`, y = exp(`Perceptions of corrupti
         y = "Perceptions of corruption"
     ) +
     theme_minimal()
+
+```
+
+```{r}
+#Factored bar plot for 'Depression (%)' by 'Entity'
+ggplot(averaged_data, aes(x = reorder(Entity, `Depression (%)`), y = `Depression (%)`)) +
+    geom_bar(stat = "identity") +
+    coord_flip() +  # Flip coordinates to display a horizontal bar chart
+    labs(
+        title = "Average Depression Rate by Country",
+        x = "Country",
+        y = "Average Depression Rate (%)"
+    ) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 0, hjust = 0.5),
+          axis.text.y = element_text(size = 2))
+
+# Factored bar plot for 'Depression (%)' by 'Lifestyle Category'
+ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Depression (%)`, fill = `Lifestyle Category`)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  labs(title = 'Factored Bar Plot: Depression (%) by Lifestyle Category',
+       x = 'Lifestyle Category',
+       y = 'Mean Depression Rate (%)') +
+  theme_minimal()
+```
+
+```{r}
+# Create a new factor variable for Depression rate categories
+min_val <- min(merged_data$`Depression (%)`, na.rm = TRUE) # excluding NA values
+max_val <- max(merged_data$`Depression (%)`, na.rm = TRUE)
+
+# Create a new factor variable for Depression rate categories
+merged_data$`Depression Category` <- cut(merged_data$`Depression (%)`,
+                                         breaks = c(min_val, 2, 4, max_val),
+                                         labels = c("relatively Low", "relatively Moderate", "relatively High"),
+                                         right = FALSE) 
+
+# Factored bar plot for 'Life Ladder' by 'Depression Category'
+ggplot(merged_data, aes(x = `Depression Category`, y = `Life Ladder`, fill = `Depression Category`)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  labs(title = 'Factored Bar Plot: Life Ladder by Depression Category',
+       x = 'Depression Percentage',
+       y = 'Mean Life Ladder Score') +
+  theme_minimal()
+```
+
+```{r}
+# Factored bar plot for 'Life Ladder' categorized by 'Lifestyle Category'
+ggplot(merged_data, aes(x = `Lifestyle Category`, fill = `Lifestyle Category`)) +
+    geom_bar() +
+    labs(
+        title = "Distribution of Life Ladder Categories",
+        x = "Lifestyle Category",
+        y = "Count"
+    ) +
+    theme_minimal()
+
+# Factored bar plot for 'Lifestyle Category' vs 'Log GDP per capita'
+ggplot(merged_data,aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill = `Lifestyle Category`)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  labs(title = 'Lifestyle Category vs Log GDP per capita',
+       x = 'Lifestyle Category',
+       y = 'Mean Log GDP per capita') +
+  theme_minimal()
+```
+
+```{r}
 
 ```
