@@ -1,6 +1,4 @@
 ---
-title: "Happiness and Mental Health Disorders | Exploratory Data Analysis | Aarya Desai | Jeremy Tan | Cassie Kang | Osama Ahmed"
-documentclass : report
 echo: FALSE
 editor: visual
 message: FALSE
@@ -13,17 +11,9 @@ geometry: margin = 2cm
 format: pdf
 ---
 
-## EDA Team5
+## "Happiness and Mental Health Disorders \| Exploratory Data Analysis \| Aarya Desai \| Jeremy Tan \| Cassie Kang \| Osama Ahmed"
 
-## Data Overview
-
-### Sources and Variables
-
-This assignment was a continuation of a research proposal submitted which outlined two potential datasets that we could use and further explore to ask two research questions. Based on the feedback, this assignment will be dedicated to conducting exploratory data analysis on the Happiness and Mental Health Dataset chosen from the previous report. This dataset is a combination of two datasets, namely, the World Happiness Dataset, 2022 retrieved from the official World Happiness Report website which conducts a yearly survey and analysis of world happiness metrics across the globe (i.e., each country), including different variables such as, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect and negative affect. The second dataset used was a World Mental Health Disorders dataset retrieved from the University of Oxford website containing datasets related to mental health metrics across the globe (i.e., each country) spanning over multiple years (). The latter dataset included metrics for mental health disorders recorded and analyzed on a Likert Scale (1 = Least Like to have given mental health disorder to 5 = Most likely to have given mental health disorder), and included this metric for the following disorders: Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
-
-### About the Dataset
-
-The resultant dataset had 1462 observations and 16 unique variables. These variables could be categorized as follows:
+**Data Overview**: This assignment was a continuation of a research proposal submitted which outlined two potential datasets that we could use and further explore to ask two research questions. Based on the feedback, this assignment will be dedicated to conducting exploratory data analysis on the Happiness and Mental Health Dataset chosen from the previous report. This dataset is a combination of two datasets, namely, the World Happiness Dataset, 2022 retrieved from the official World Happiness Report website which conducts a yearly survey and analysis of world happiness metrics across the globe (i.e., each country), including different variables such as, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect and negative affect. The second dataset used was a World Mental Health Disorders dataset retrieved from the University of Oxford website containing datasets related to mental health metrics across the globe (i.e., each country) spanning over multiple years (). The latter dataset included metrics for mental health disorders recorded and analyzed on a Likert Scale (1 = Least Like to have given mental health disorder to 5 = Most likely to have given mental health disorder), and included this metric for the following disorders: Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression. The resultant dataset had 1462 observations and 16 unique variables. These variables could be categorized as follows:
 
 ```{r, echo=FALSE, message=FALSE, results='hide'}
 # Load the xtable package
@@ -103,14 +93,14 @@ cat("\\label{tab:descriptive_stats}\n")
 cat("\\end{table}\n")
 ```
 
-### Research Questions
-
-These datasets were then merged on corresponding Country and Year in each dataset. Based on this merged dataset, our team wanted to investigate the following research questions:
+**Primary relationships of interest:** These datasets were then merged on corresponding Country and Year in each dataset. Based on this merged dataset, our team wanted to investigate the following research questions:
 
 1.  To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depression (outcome variable: continuous) in countries?
 2.  To what extent do mental health disorders and happiness metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, log GDP per capita, social support, freedom, perception of corruption, generosity) predict life ladder (outcome variable: categorical)?
 
-For the second research question, a binary outcome variable needed to be calculated from the original, continuous variable Life Ladder. This was to gain a more discerning outlook on the influence of various variables on how *good* or *bad* a countries' overall quality of life is. Therefore, for the same, Life Ladder was converted into a categorical variable named Lifestyle Category with two levels: Subpar Quality of Life and Satisfactory Quality of Life. This was done by assigning the prior factor to observations falling below the median of Life Ladder and the latter for those observations with a Life Ladder value above the median (*Mdn* = 5.35). Figure 1. gives a visual representation of the distribution of this data.
+For the second research question, a binary outcome variable needed to be calculated from the original, continuous variable Life Ladder. This was to gain a more discerning outlook on the influence of various variables on how *good* or *bad* a countries' overall quality of life is. Therefore, for the same, Life Ladder was converted into a categorical variable named Lifestyle Category with two levels: Subpar Quality of Life and Satisfactory Quality of Life. This was done by assigning the prior factor to observations falling below the median of Life Ladder and the latter for those observations with a Life Ladder value above the median (*Mdn* = 5.35).
+
+Figure 1. Life Ladder Distribution
 
 ```{r, echo=FALSE, results='hide', message=FALSE}
 library(dplyr)
@@ -320,21 +310,18 @@ print(detailed_variable_types)
 # View(merged_data)
 ```
 
-*Figure 1*. Histogram for Life Ladder Distribution.
-
-```{r, echo=FALSE, results='hide', message=FALSE}
+```{r, echo=FALSE,  results='hide',fig.height=2, fig.width=4, message=FALSE, warning=FALSE}
 # Create a histogram with density plot overlay
 ggplot(merged_data, aes(x = `Life Ladder`)) +
   geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", aes(y = ..density..)) +
   geom_density(color = "navy", size = 1) +
-  labs(title = "Life Ladder Distribution",
-       x = "Life Ladder",
+  labs(x = "Life Ladder",
        y = "Density") +
   theme_minimal()
 
 ```
 
-```{r, echo=FALSE, results='hide', message=FALSE}
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
 # change life ladder to categorical variable 
 median_life_ladder <- median(merged_data$`Life Ladder`)
 # Create a new variable based on the median
@@ -345,19 +332,19 @@ merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, lev
 
 ```
 
-## Outcome Variables
+**Outcome variables**
 
-### Research Question 1 (RQ1)
+**Research Question 1 (RQ1):** The following are plots to visually represent the predictors variables for this research question against depression.
 
-The following are plots to visually represent the predictors variables for this research question against depression.
+Figure 2. RQ1 predictor variables against the outcome variable depression
 
-*Figure 2*. Grid arrangement of RQ1 predictor variables against the outcome variable depression.
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r, echo=FALSE, results='hide', fig.height=4, fig.width=6, message=FALSE}
 
 # Load the gridExtra package
 library(gridExtra)
 library(ggplot2)
+library(cowplot)
+
 
 # Create scatter plots
 plots <- list(
@@ -453,15 +440,16 @@ plots <- list(
 )
 
 # Arrange the plots in a grid
-grid.arrange(grobs = plots, ncol = 2)
+arranged_plots <- grid.arrange(grobs = plots, ncol = 2)
+arranged_plots
 
 ```
 
 As seen in the figures above, the data is showing distinct patterns in a clustered fashion. This is because the data is being inherently group based on the country, changing very minimally by the year. Therefore, to have a better understanding of the relationship without having sub-trends in the graphs, the data was transformed, where the mean of each variable was calculated per country in the dataset. Though this reduced the number of observations from 1462 to 152, this was a necessary step required to gain some more understandable exploratory information regarding the data without accounting for the confound of the Year variable. Below are the new plots with the averaged variables plotted against depression.
 
-*Figure 3*. Grid arrangement of RQ1 predictor variables against the outcome variable depression, with variables grouped and averaged by country.
+Figure 3. RQ1 predictor variables against the outcome variable depression, with variables grouped and averaged by country
 
-```{r, echo=FALSE, results='hide', message=FALSE}
+```{r, echo=FALSE, results='hide', fig.height=4, fig.width=6, message=FALSE}
 # Group the data by the 'Entity' (countries) column
 grouped_data <- merged_data %>%
   group_by(Entity)
@@ -482,7 +470,8 @@ averaged_data <- grouped_data %>%
 # View(averaged_data)
 ```
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r, echo=FALSE, results='hide', fig.height=4, fig.width=6, message=FALSE}
+
 # Load the required libraries
 library(gridExtra)
 library(ggplot2)
@@ -581,7 +570,9 @@ plots_new <- list(
 )
 
 # Arrange the plots in a grid
-grid.arrange(grobs = plots_new, ncol = 2)
+arranged_plots <- grid.arrange(grobs = plots_new, ncol = 2)
+
+arranged_plots
 
 
 ```
@@ -617,9 +608,9 @@ ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Depression (%)`, fill = `
 #install.packages("mapdata")
 ```
 
-*Figure 4*. Heatmap to visualize depression rates across countries.
+Figure 4. Heatmap to visualize depression rates across countries.
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r, echo=FALSE, results='hide', fig.height=4, fig.width=6, message=FALSE}
 # Load the required libraries
 library(ggplot2)
 library(maps)
@@ -644,9 +635,7 @@ ggplot(merged_map_data, aes(x = long, y = lat, group = group, fill = `Depression
   coord_fixed(1.3)
 ```
 
-### Research Question 2 (RQ2)
-
-To gain a better understanding of the relationship between the binary outcome variable, Lifestyle Category, and the continuous predictor variables chosen for RQ2, bar plots to show the difference in Subpar vs Satisfactory Quality of Life (QoL) were plotted (Figure 5).
+**Research Question 2 (RQ2):** To gain a better understanding of the relationship between the binary outcome variable, Lifestyle Category, and the continuous predictor variables chosen for RQ2, bar plots to show the difference in Subpar vs Satisfactory Quality of Life (QoL) were plotted (Figure 5).
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 # Create a new factor variable for Depression rate categories
@@ -680,7 +669,7 @@ ggplot(merged_data, aes(x = `Depression (%)`, y = `Lifestyle Category`, color = 
 
 Figure 5.
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.height=6}
+```{r, echo=FALSE, results='hide', fig.height=7, fig.width=11, message=FALSE}
 predictor_vars <- c("Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", 
                     "Anxiety disorders (%)", "Depression (%)", "Log GDP per capita", 
                     "Social support", "Freedom to make life choices", "Perceptions of corruption", "Generosity")
@@ -753,26 +742,20 @@ ggplot(merged_data,aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill 
   theme_minimal()
 ```
 
-## Other Variables
+**Other Characteristics**: In the analysis of the World Happiness Report and World Mental Health Data, it was essential to consider variables that would not be included in our model. These variables are "Country"/"Entity" and "Year."
 
-In the analysis of the World Happiness Report and World Mental Health Data, it was essential to consider variables that would not be included in our model. These variables are "Country"/"Entity" and "Year."
+Year is a categorical variable representing the years for which the data was collected. It has 13 unique values with varying repetitions. The "Country" variable represents the countries for which the data was collected. It is a categorical variable with 153 unique countries, each with varying repetitions.
 
-### Year & Country
+**Potential Challenges**:
 
-Year is a categorical variable representing the years for which the data was collected. It has 13 unique values with varying repetitions. The "Country" variable represents the countries for which the data was collected. It is a categorical variable with 165 unique countries, each with varying repetitions. Here are the values for "Year" and a few examples of the values for "Country" and their repetitions:
+1.  Assumptions about Data Homogeneity: It is assumed that the data is uniform across countries and years, disregarding potential influences from these variables. This is crucial because factors like GDP and cultural nuances can significantly impact happiness metrics.
 
-| Year | Repetitions | Country     | Repetitions |
-|------|-------------|-------------|-------------|
-| 2005 | 25          | Afghanistan | 10          |
-| 2006 | 86          | Albania     | 10          |
-| 2007 | 97          | Algeria     | 6           |
-| 2008 | 104         | Zimbabwe    | 12          |
-| 2009 | 106         |             |             |
-| 2010 | 116         |             |             |
-| 2011 | 135         |             |             |
-| 2012 | 131         |             |             |
-| 2013 | 127         |             |             |
-| 2014 | 134         |             |             |
-| 2015 | 133         |             |             |
-| 2016 | 131         |             |             |
-| 2017 | 137         |             |             |
+2.  Addressing NAs: There's a need to understand why there are missing values (NAs). This could be due to merging processes or a specific pattern (e.g., related to certain years, countries, or occurring randomly). It's important to address this issue, as it could affect the accuracy of the results or model.
+
+3.  Binary Variable Creation: Creating a binary variable based on the median may not capture nuanced differences between groups. This might limit the depth of insights derived from the analysis.
+
+4.  Limited Insights from EDA for RQ1: Initial exploratory data analysis (EDA) for Research Question 1 suggests weak relationships. This could potentially lead to a model with limited predictive power and insights.
+
+5.  Promising Aspects of RQ2: Research Question 2 holds more promise, but there are still important considerations, starting with an examination of how the binary variable was derived.
+
+6.  Multicollinearity Concerns: Given the nature of predictor variables in the World Happiness Dataset, there's a possibility of high correlation among them. This can lead to multicollinearity in regression models, complicating the interpretation of individual predictor effects on the outcome.
