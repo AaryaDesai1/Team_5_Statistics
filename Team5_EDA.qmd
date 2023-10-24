@@ -6,25 +6,122 @@ editor: visual
 
 ## EDA Team5
 
-```{r}
+## Data Overview
+
+### Sources and Variables
+
+This assignment was a continuation of a research proposal submitted which outlined two potential datasets that we could use and further explore to ask two research questions. Based on the feedback, this assignment will be dedicated to conducting exploratory data analysis on the Happiness and Mental Health Dataset chosen from the previous report. This dataset is a combination of two datasets, namely, the World Happiness Dataset, 2022 retrieved from the official World Happiness Report website which conducts a yearly survey and analysis of world happiness metrics across the globe (i.e., each country), including different variables such as, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect and negative affect. The second dataset used was a World Mental Health Disorders dataset retrieved from the University of Oxford website containing datasets related to mental health metrics across the globe (i.e., each country) spanning over multiple years (). The latter dataset included metrics for mental health disorders recorded and analyzed on a Likert Scale (1 = Least Like to have given mental health disorder to 5 = Most likely to have given mental health disorder), and included this metric for the following disorders: Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
+
+### About the Dataset
+
+The resultant dataset had 1462 observations and 16 unique variables. These variables could be categorized as follows:
+
+```{r, echo=FALSE, message=FALSE, results='hide'}
+# Load the xtable package
+library(xtable)
+
+# Create a data frame for variable categorization
+variable_categories <- data.frame(
+  "Category" = c(
+    "Subjective Well-being", "Economic Indicators", "Health and Life Expectancy",
+    "Freedom and Governance", "Mental Health Disorders"
+  ),
+  "Variables" = c(
+    "Life Ladder, Positive Affect, Negative Affect",
+    "Log GDP per capita, Social Support",
+    "Life Expectancy at Birth",
+    "Freedom, Perception of Corruption, Generosity",
+    "Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, Depression"
+  )
+)
+
+# Create the LaTeX table
+variable_category_table <- xtable(variable_categories, caption = "Variable Categories", label = "tab:variable_categories")
+
+# Print the table
+print(variable_category_table)
+```
+
+```{r, echo=FALSE, message=FALSE, results='hide'}
+cat("\\begin{table}[ht]\n")
+cat("\\centering\n")
+cat("\\begin{tabular}{rll}\n")
+cat("  \\hline\n")
+cat(" & Category & Variables \\\\ \n") 
+cat("  \\hline\n")
+cat("1 & Subjective Well-being & Life Ladder, Positive Affect, Negative Affect \\\\ \n")
+cat("2 & Economic Indicators & Log GDP per capita, Social Support \\\\ \n")
+cat("3 & Health and Life Expectancy & Life Expectancy at Birth \\\\ \n")
+cat("4 & Freedom and Governance & Freedom, Perception of Corruption, Generosity \\\\ \n")
+cat("5 & Mental Health Disorders & Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, Depression \\\\ \n")
+cat("   \\hline\n")
+cat("\\end{tabular}\n")
+cat("\\caption{Variable Categories} \n")
+cat("\\label{tab:variable_categories}\n")
+cat("\\end{table}\n")
+```
+
+The following is also a brief overview of the descriptive statistics for each of these variables, including the mean, median, standard deviation, and confidence intervals of each.
+
+```{r, echo=FALSE, results='asis', message=FALSE}
+cat("\\begin{table}[ht]\n")
+cat("\\centering\n")
+cat("\\begin{tabular}{rlllll}\n")
+cat("  \\hline\n")
+cat(" & X.Year. & X.2011.81258549932. & X.2012. & X.3.44037392978392. & X.2011.63608741833..2011.9890835803. \\\\ \n")
+cat("  \\hline\n")
+cat("1 & Year & 2011.81258549932 & 2012 & 3.44037392978392 & 2011.63608741833, 2011.9890835803 \\\\ \n")
+cat("  2 & Schizophrenia (\\%) & 0.212139552272557 & 0.1995631215315 & 0.0449828481964651 & 0.209831841963773, 0.21444726258134 \\\\ \n")
+cat("  3 & Bipolar disorder (\\%) & 0.742866832435753 & 0.708245485812 & 0.15141936636854 & 0.735098715326049, 0.750634949545457 \\\\ \n")
+cat("  4 & Eating disorders (\\%) & 0.262934101349963 & 0.20100736754 & 0.171955446575768 & 0.254112442148187, 0.271755760551738 \\\\ \n")
+cat("  5 & Anxiety disorders (\\%) & 4.00797287241487 & 3.555640688435 & 1.27692490042243 & 3.94246406462712, 4.07348168020261 \\\\ \n")
+cat("  6 & Drug use disorders (\\%) & 0.87913947745623 & 0.683396459519 & 0.521437703238378 & 0.852388677731496, 0.905890277180964 \\\\ \n")
+cat("  7 & Depression (\\%) & 3.45995316220667 & 3.47921000422 & 0.641499615848626 & 3.42704294562569, 3.49286337878764 \\\\ \n")
+cat("  8 & Alcohol use disorders (\\%) & 1.66761392176288 & 1.51008248196 & 0.993645695876286 & 1.61663790517902, 1.71858993834674 \\\\ \n")
+cat("  9 & Life Ladder & 5.44776180146005 & 5.34728288650513 & 1.14208059329084 & 5.38917077700806, 5.50635282591203 \\\\ \n")
+cat("  10 & Log GDP per capita &  &  &  & 9.2798276055712, 9.39886802077602 \\\\ \n")
+cat("  11 & Social support &  &  &  & 0.805582977780007, 0.818127123408826 \\\\ \n")
+cat("  12 & Healthy life expectancy at birth & 62.7502291704822 & 64.6199989318848 & 7.201778392354 & 62.3807634984771, 63.1196948424874 \\\\ \n")
+cat("  13 & Freedom to make life choices &  &  &  & 0.726315778657669, 0.741312088225227 \\\\ \n")
+cat("  14 & Generosity &  &  &  & -0.00560998798644518, 0.0116624398441617 \\\\ \n")
+cat("  15 & Perceptions of corruption &  &  &  & 0.74191910347652, 0.76170417653392 \\\\ \n")
+cat("  16 & Positive affect &  &  &  & 0.649588013908746, 0.660527911573264 \\\\ \n")
+cat("  17 & Negative affect &  &  &  & 0.258323311250348, 0.266850923194627 \\\\ \n")
+cat("   \\hline\n")
+cat("\\end{tabular}\n")
+cat("\\caption{Descriptive Statistics}\n")
+cat("\\label{tab:descriptive_stats}\n")
+cat("\\end{table}\n")
+```
+
+### Research Questions
+
+These datasets were then merged on corresponding Country and Year in each dataset. Based on this merged dataset, our team wanted to investigate the following research questions:
+
+1.  To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depression (outcome variable: continuous) in countries?
+2.  To what extent do mental health disorders and happiness metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, log GDP per capita, social support, freedom, perception of corruption, generosity) predict life ladder (outcome variable: categorical)?
+
+For the second research question, a binary outcome variable needed to be calculated from the original, continuous variable Life Ladder. This was to gain a more discerning outlook on the influence of various variables on how *good* or *bad* a countries' overall quality of life is. Therefore, for the same, Life Ladder was converted into a categorical variable named Lifestyle Category with two levels: Subpar Quality of Life and Satisfactory Quality of Life. This was done by assigning the prior factor to observations falling below the median of Life Ladder and the latter for those observations with a Life Ladder value above the median (*Mdn* = 5.35). Figure 1. gives a visual representation of the distribution of this data.
+
+```{r, echo=FALSE, results='hide', message=FALSE}
 library(dplyr)
 library(readxl)
 ```
 
-```{r}
-Happiness_Data <- read_xls("DataFortable2.1WHR2023.xls")
-Mental_Health_Data <- read_xlsx("Mental health Depression disorder Data.xlsx")
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+Happiness_Data <- read_xls("~/Documents/IDS Sem 1/Statistics/Team_5_Statistics/data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("~/Documents/IDS Sem 1/Statistics/Team_5_Statistics/data/Mental health Depression disorder Data.xlsx")
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 glimpse(Happiness_Data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 glimpse(Mental_Health_Data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Show unique values of a column
 unique_values_happiness <- unique(Happiness_Data$`Country name`)
 
@@ -32,7 +129,7 @@ unique_values_happiness <- unique(Happiness_Data$`Country name`)
 print(unique_values_happiness)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Show unique values of a column
 unique_values_mental <- unique(Mental_Health_Data$Entity)
 
@@ -40,7 +137,7 @@ unique_values_mental <- unique(Mental_Health_Data$Entity)
 print(unique_values_mental)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Find elements that are common in both vectors
 common_elements <- intersect(unique_values_mental, unique_values_happiness)
 
@@ -48,33 +145,33 @@ common_elements <- intersect(unique_values_mental, unique_values_happiness)
 print(common_elements)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 Happiness_Data <- Happiness_Data[Happiness_Data$`Country name` %in% common_elements, ]
 
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$`Entity` %in% common_elements, ]
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 unique_years_happy <- unique(Happiness_Data$year)
 print(unique_years_happy)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$Year %in% unique_years_happy, ]
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 glimpse(Mental_Health_Data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 glimpse(Happiness_Data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Merge the datasets based on "Entity" and "Year"
 merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"))
 
@@ -83,28 +180,28 @@ merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Yea
 str(merged_data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 glimpse(merged_data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # remove columns that are unreadbale and full of NA values
 merged_data <- merged_data %>%
     select(-...11, -`Unique Countries`)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 glimpse(merged_data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # drop all rows that have NA values
 # merged_data <- na.omit(merged_data)
 
 glimpse(merged_data)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 #  Provide sample size, number of variables, and data source.
 
 sample_size_merged_data <- nrow(merged_data)
@@ -115,19 +212,13 @@ print(num_variables_merged_data)
 # ADD DATA SOURCE HERE
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 #  Include a brief description of how the data was collected.
 
 # i have no idea
 ```
 
--    Clearly state the research questions.
-
-    -   To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depression (outcome variable: continuous) in countries?
-
-    -   To what extent do mental health disorders and happiness metrics (predictor variables: schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, log GDP per capita, social support, freedom, perception of corrpution, generosity) predict life ladder (outcome variable: categorical)?
-
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Define a function to calculate descriptive statistics
 calculate_descriptive_stats <- function(data) {
     # Get the names of numeric columns
@@ -157,21 +248,39 @@ calculate_descriptive_stats <- function(data) {
 }
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
+# Load the xtable package
+library(xtable)
+
+# Calculate descriptive statistics
 descriptive_stats <- calculate_descriptive_stats(merged_data)
 
+# Create a data frame to hold the summary statistics
+summary_df <- data.frame(
+  Variable = character(0),
+  Mean = numeric(0),
+  Median = numeric(0),
+  StandardDeviation = numeric(0),
+  ConfidenceInterval = character(0)
+)
+
+# Populate the summary data frame
 for (col in names(descriptive_stats)) {
-    cat("Descriptive Statistics for", col, ":\n")
-    cat("- Summary:\n")
-    print(descriptive_stats[[col]]$Summary)
-    cat("- Mean:", descriptive_stats[[col]]$Mean, "\n")
-    cat("- Median:", descriptive_stats[[col]]$Median, "\n")
-    cat("- Standard Deviation:", descriptive_stats[[col]]$StandardDeviation, "\n")
-    cat("- 95% Confidence Interval:", descriptive_stats[[col]]$ConfidenceInterval, "\n\n")
+  summary_df <- rbind(summary_df, c(col, 
+                                    descriptive_stats[[col]]$Mean,
+                                    descriptive_stats[[col]]$Median,
+                                    descriptive_stats[[col]]$StandardDeviation,
+                                    ifelse(length(descriptive_stats[[col]]$ConfidenceInterval) > 1,
+                                           paste(descriptive_stats[[col]]$ConfidenceInterval, collapse = ", "),
+                                           descriptive_stats[[col]]$ConfidenceInterval)
+  ))
 }
+
+# Create the LaTeX table
+table <- xtable(summary_df, caption = "Descriptive Statistics", label = "tab:descriptive_stats")
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE, fig.show='hide'}
 # Create exploratory plots (tables or figures).
 library(ggplot2)
 
@@ -180,96 +289,128 @@ ggplot(merged_data, aes(x = `Life Ladder`, y = `Log GDP per capita`)) +
     labs(x = "Life Ladder", y = "Log GDP per capita", title = "Scatter Plot")
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Provide clear descriptions of findings.
 # Like what are we doing here? I'm not even sure.
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 detailed_variable_types <- sapply(merged_data, function(x) typeof(x))
 
 # Print the detailed variable types
 print(detailed_variable_types)
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Entity -> categorical varaible for country?
 # Life ladder -> categorical variable
 # Year -> continous variable
 # rest of varaibles are basically continous variables
 # test push
 # for vscode
-View(merged_data)
+# View(merged_data)
 ```
 
-```{r}
-hist(merged_data$`Life Ladder`)
+*Figure 1*. Histogram for Life Ladder Distribution.
+
+```{r, echo=FALSE, results='hide', message=FALSE}
+# Create a histogram with density plot overlay
+ggplot(merged_data, aes(x = `Life Ladder`)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", aes(y = ..density..)) +
+  geom_density(color = "navy", size = 1) +
+  labs(title = "Life Ladder Distribution",
+       x = "Life Ladder",
+       y = "Density") +
+  theme_minimal()
+
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE}
 # change life ladder to categorical variable 
 median_life_ladder <- median(merged_data$`Life Ladder`)
 # Create a new variable based on the median
 merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= median_life_ladder, 1, 0)
 
 # rename levels with labelss
-merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Below Average Lifestyle", "Above Average Lifestyle"))
+merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Subpar QoL", "Satisfactory QoL"))
 
 ```
 
-```{r}
+## Outcome Variables
 
-# Scatter plot for 'Depression (%)' vs 'Log GDP per capita'
-ggplot(merged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
-  geom_point() +
-  labs(title = 'Scatter Plot: Depression (%) vs Log GDP per capita',
-       x = 'Depression (%)',
-       y = 'Log GDP per capita') +
-  theme_minimal()
+### Research Question 1 (RQ1)
 
-# Scatter plot for 'Depression (%)' vs 'Social support'
-ggplot(merged_data, aes(x = `Depression (%)`, y = `Social support`)) +
-  geom_point() +
-  labs(title = 'Scatter Plot: Depression (%) vs Social support',
-       x = 'Depression (%)',
-       y = 'Social support') +
-  theme_minimal()
+The following are plots to visually represent the predictors variables for this research question against depression.
 
-# Scatter plot for 'Depression (%)' vs 'Healthy life expectancy at birth'
-ggplot(merged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
-  geom_point() +
-  labs(title = 'Scatter Plot: Depression (%) vs Healthy life expectancy at birth',
-       x = 'Depression (%)',
-       y = 'Healthy life expectancy at birth') +
-  theme_minimal()
+*Figure 2*. Grid arrangement of RQ1 predictor variables against the outcome variable depression.
 
-# Scatter plot for 'Depression (%)' vs 'Freedom to make life choices'
-ggplot(merged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
-  geom_point() +
-  labs(title = 'Scatter Plot: Depression (%) vs Freedom to make life choices',
-       x = 'Depression (%)',
-       y = 'Freedom to make life choices') +
-  theme_minimal()
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
 
-# Scatter plot for 'Depression (%)' vs 'Generosity'
-ggplot(merged_data, aes(x = `Depression (%)`, y = Generosity)) +
-  geom_point() +
-  labs(title = 'Scatter Plot: Depression (%) vs Generosity',
-       x = 'Depression (%)',
-       y = 'Generosity') +
-  theme_minimal()
+# Load the gridExtra package
+library(gridExtra)
+library(ggplot2)
 
-# Scatter plot for 'Depression (%)' vs 'Perceptions of corruption'
-ggplot(merged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) +
-  geom_point() +
-  labs(title = 'Scatter Plot: Depression (%) vs Perceptions of corruption',
-       x = 'Depression (%)',
-       y = 'Perceptions of corruption') +
-  theme_minimal()
+# Create scatter plots
+plots <- list(
+  ggplot(merged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
+    geom_point(color = "blue", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "lightblue") +
+    labs(title = 'Scatter Plot: Depression (%) vs Log GDP per capita',
+         x = 'Depression (%)',
+         y = 'Log GDP per capita') +
+    theme_minimal(),
+
+  ggplot(merged_data, aes(x = `Depression (%)`, y = `Social support`)) +
+    geom_point(color = "green", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "white") +
+    labs(title = 'Scatter Plot: Depression (%) vs Social support',
+         x = 'Depression (%)',
+         y = 'Social support') +
+    theme_minimal(),
+
+  ggplot(merged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
+    geom_point(color = "purple", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "violet") +
+    labs(title = 'Scatter Plot: Depression (%) vs Healthy life expectancy at birth',
+         x = 'Depression (%)',
+         y = 'Healthy life expectancy at birth') +
+    theme_minimal(),
+
+  ggplot(merged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
+    geom_point(color = "orange", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "yellow") +
+    labs(title = 'Scatter Plot: Depression (%) vs Freedom to make life choices',
+         x = 'Depression (%)',
+         y = 'Freedom to make life choices') +
+    theme_minimal(),
+
+  ggplot(merged_data, aes(x = `Depression (%)`, y = Generosity)) +
+    geom_point(color = "brown", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "black") +
+    labs(title = 'Scatter Plot: Depression (%) vs Generosity',
+         x = 'Depression (%)',
+         y = 'Generosity') +
+    theme_minimal(),
+
+  ggplot(merged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) +
+    geom_point(color = "pink", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "red") +
+    labs(title = 'Scatter Plot: Depression (%) vs Perceptions of corruption',
+         x = 'Depression (%)',
+         y = 'Perceptions of corruption') +
+    theme_minimal()
+)
+
+# Arrange the plots in a grid
+grid.arrange(grobs = plots, ncol = 2)
 
 ```
 
-```{r}
+As seen in the figures above, the data is showing distinct patterns in a clustered fashion. This is because the data is being inherently group based on the country, changing very minimally by the year. Therefore, to have a better understanding of the relationship without having sub-trends in the graphs, the data was transformed, where the mean of each variable was calculated per country in the dataset. Though this reduced the number of observations from 1462 to 152, this was a necessary step required to gain some more understandable exploratory information regarding the data without accounting for the confound of the Year variable. Below are the new plots with the averaged variables plotted against depression.
+
+*Figure 3*. Grid arrangement of RQ1 predictor variables against the outcome variable depression, with variables grouped and averaged by country.
+
+```{r, echo=FALSE, results='hide', message=FALSE}
 # Group the data by the 'Entity' (countries) column
 grouped_data <- merged_data %>%
   group_by(Entity)
@@ -287,73 +428,76 @@ averaged_data <- grouped_data %>%
   )
 
 # View the resulting dataset with averages
-View(averaged_data)
+# View(averaged_data)
 ```
 
-```{r}
-# Scatter plot for 'Depression (%)' vs 'Log GDP per capita'
-ggplot(averaged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
-    geom_point() +
-    labs(
-        title = "Scatter Plot: Depression (%) vs Log GDP per capita",
-        x = "Depression (%)",
-        y = "Log GDP per capita"
-    ) +
-    theme_minimal()
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# Load the required libraries
+library(gridExtra)
+library(ggplot2)
 
-# Scatter plot for 'Depression (%)' vs 'Social support'
-ggplot(averaged_data, aes(x = `Depression (%)`, y = `Social support`)) +
-    geom_point() +
-    labs(
-        title = "Scatter Plot: Depression (%) vs Social support",
-        x = "Depression (%)",
-        y = "Social support"
-    ) +
-    theme_minimal()
+# Create scatter plots
+plots_new <- list(
+  ggplot(averaged_data, aes(x = `Depression (%)`, y = `Log GDP per capita`)) +
+    geom_point(color = "blue", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "lightblue") +
+    labs(title = 'Scatter Plot: Depression (%) vs Log GDP per capita',
+         x = 'Depression (%)',
+         y = 'Log GDP per capita') +
+    theme_minimal(),
 
-# Scatter plot for 'Depression (%)' vs 'Healthy life expectancy at birth'
-ggplot(averaged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
-    geom_point() +
-    labs(
-        title = "Scatter Plot: Depression (%) vs Healthy life expectancy at birth",
-        x = "Depression (%)",
-        y = "Healthy life expectancy at birth"
-    ) +
-    theme_minimal()
+  ggplot(averaged_data, aes(x = `Depression (%)`, y = `Social support`)) +
+    geom_point(color = "green", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "white") +
+    labs(title = 'Scatter Plot: Depression (%) vs Social support',
+         x = 'Depression (%)',
+         y = 'Social support') +
+    theme_minimal(),
 
-# Scatter plot for 'Depression (%)' vs 'Freedom to make life choices'
-ggplot(averaged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
-    geom_point() +
-    labs(
-        title = "Scatter Plot: Depression (%) vs Freedom to make life choices",
-        x = "Depression (%)",
-        y = "Freedom to make life choices"
-    ) +
-    theme_minimal()
+  ggplot(averaged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
+    geom_point(color = "purple", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "violet") +
+    labs(title = 'Scatter Plot: Depression (%) vs Healthy life expectancy at birth',
+         x = 'Depression (%)',
+         y = 'Healthy life expectancy at birth') +
+    theme_minimal(),
 
-# Scatter plot for 'Depression (%)' vs 'Generosity'
-ggplot(averaged_data, aes(x = `Depression (%)`, y = Generosity)) +
-    geom_point() +
-    labs(
-        title = "Scatter Plot: Depression (%) vs Generosity",
-        x = "Depression (%)",
-        y = "Generosity"
-    ) +
-    theme_minimal()
+  ggplot(averaged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
+    geom_point(color = "orange", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "yellow") +
+    labs(title = 'Scatter Plot: Depression (%) vs Freedom to make life choices',
+         x = 'Depression (%)',
+         y = 'Freedom to make life choices') +
+    theme_minimal(),
 
-# Scatter plot for 'Depression (%)' vs 'Perceptions of corruption'
-ggplot(averaged_data, aes(x = `Depression (%)`, y = exp(`Perceptions of corruption`))) +
-    geom_point() +
-    labs(
-        title = "Scatter Plot: Depression (%) vs Perceptions of corruption",
-        x = "Depression (%)",
-        y = "Perceptions of corruption"
-    ) +
+  ggplot(averaged_data, aes(x = `Depression (%)`, y = Generosity)) +
+    geom_point(color = "brown", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "black") +
+    labs(title = 'Scatter Plot: Depression (%) vs Generosity',
+         x = 'Depression (%)',
+         y = 'Generosity') +
+    theme_minimal(),
+
+  ggplot(averaged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) +
+    geom_point(color = "pink", alpha = 0.6) +
+    geom_smooth(method = "lm", color = "red") +
+    labs(title = 'Scatter Plot: Depression (%) vs Perceptions of corruption',
+         x = 'Depression (%)',
+         y = 'Perceptions of corruption') +
     theme_minimal()
+)
+
+# Arrange the plots in a grid
+grid.arrange(grobs = plots_new, ncol = 2)
+
 
 ```
 
-```{r}
+These grid plots reveal that the connections between depression and the chosen predictor variables are not notably pronounced. The only variable that shows a weak, negative relationship with depression is 'Perception of Corruption'. On the other hand, the remaining variables exhibit relatively flat relationship lines, indicating a more subtle correlation, and providing us with limited additional insights into their interrelationship with depression. Therefore, these plots do not provide much insightful information regarding RQ2.
+
+Lastly, for some exploratory understanding of the general distribution of depression rates across the globe, a map plot was made to see the variation in depression rates between countries (Figure 4). As seen in the figure, there is a notable variation in the depression metric between countries. Therefore, our model may benefit from using Country as a factor or confound, to gain a more in-depth understanding of RQ1.
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 #Factored bar plot for 'Depression (%)' by 'Entity'
 ggplot(averaged_data, aes(x = reorder(Entity, `Depression (%)`), y = `Depression (%)`)) +
     geom_bar(stat = "identity") +
@@ -376,7 +520,42 @@ ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Depression (%)`, fill = `
   theme_minimal()
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+install.packages("mapdata")
+```
+
+*Figure 4*. Heatmap to visualize depression rates across countries.
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+# Load the required libraries
+library(ggplot2)
+library(maps)
+library(mapdata)
+
+# Assuming `averaged_data` contains the country names and depression rates
+
+# Get world map data
+world_map <- map_data("world")
+
+# Perform a left join to keep only the countries in averaged_data
+merged_map_data <- merge(world_map, averaged_data, by.x = "region", by.y = "Entity", all.x = TRUE)
+
+ggplot(merged_map_data, aes(x = long, y = lat, group = group, fill = `Depression (%)`)) +
+  geom_polygon() +
+  borders("world", xlim = c(-180, 180), ylim = c(-90, 90), colour = "white", fill = NA) +  # Add world borders
+  scale_fill_gradient(low = "blue", high = "red", name = "Depression (%)") +
+  labs(title = "Depression Rate Choropleth Map",
+       x = "Longitude",
+       y = "Latitude") +
+  theme(legend.position = "bottom") +
+  coord_fixed(1.3)
+```
+
+### Research Question 2 (RQ2)
+
+To gain a better understanding of the relationship between the binary outcome variable, Lifestyle Category, and the continuous predictor variables chosen for RQ2, bar plots to show the difference in Subpar vs Satisfactory Quality of Life (QoL) were plotted (Figure 5).
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 # Create a new factor variable for Depression rate categories
 min_val <- min(merged_data$`Depression (%)`, na.rm = TRUE) # excluding NA values
 max_val <- max(merged_data$`Depression (%)`, na.rm = TRUE)
@@ -396,7 +575,52 @@ ggplot(merged_data, aes(x = `Depression Category`, y = `Life Ladder`, fill = `De
   theme_minimal()
 ```
 
-```{r}
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Scatter plot for 'Life Ladder' vs 'Continuous Predictor 1'
+ggplot(merged_data, aes(x = `Depression (%)`, y = `Lifestyle Category`, color = `Lifestyle Category`)) +
+  geom_boxplot() +
+  labs(title = 'Box Plot: Depression by Life Ladder',
+       x = 'Depression',
+       y = 'Life Ladder') +
+  theme_minimal()
+```
+
+Figure 5.
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+predictor_vars <- c("Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", 
+                    "Anxiety disorders (%)", "Depression (%)", "Log GDP per capita", 
+                    "Social support", "Freedom to make life choices", "Perceptions of corruption", "Generosity")
+
+# Create a list to store the plots
+plots_rq2 <- list()
+
+# Loop through the predictor variables
+for (var in predictor_vars) {
+  if (is.numeric(merged_data[[var]])) {
+    # For continuous predictors, create a box plot
+    p <- ggplot(merged_data, aes(x = `Lifestyle Category`, y = .data[[var]], fill = `Lifestyle Category`)) +
+      geom_boxplot() +
+      labs(title = paste("Box Plot of", var, "by Lifestyle Category"),
+           x = "Lifestyle Category",
+           y = var) +
+      theme_minimal()
+  } else {
+    # For binary predictors, create a bar plot
+    p <- ggplot(merged_data, aes(x = .data[[var]], fill = `Lifestyle Category`)) +
+      geom_bar(position = "dodge") +
+      labs(title = paste("Bar Plot of", var, "by Lifestyle Category"),
+           x = "Lifestyle Category",
+           y = "Frequency") +
+      theme_minimal()
+  }
+  plots_rq2[[var]] <- p
+}
+
+grid.arrange(grobs = plots_rq2, ncol = 2)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 # Factored bar plot for 'Life Ladder' categorized by 'Lifestyle Category'
 ggplot(merged_data, aes(x = `Lifestyle Category`, fill = `Lifestyle Category`)) +
     geom_bar() +
@@ -414,8 +638,4 @@ ggplot(merged_data,aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill 
        x = 'Lifestyle Category',
        y = 'Mean Log GDP per capita') +
   theme_minimal()
-```
-
-```{r}
-
 ```
