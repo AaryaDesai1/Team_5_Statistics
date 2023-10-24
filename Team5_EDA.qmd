@@ -1,7 +1,16 @@
 ---
-title: "Team 5 EDA"
-format: html
+title: "Happiness and Mental Health Disorders | Exploratory Data Analysis | Aarya Desai | Jeremy Tan | Cassie Kang | Osama Ahmed"
+documentclass : report
+echo: FALSE
 editor: visual
+message: FALSE
+warning: FALSE
+output:
+ pdf_document:
+  latex_engine: xelatex
+ top-margin: 0.5in
+geometry: margin = 2cm
+format: pdf
 ---
 
 ## EDA Team5
@@ -521,7 +530,7 @@ ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Depression (%)`, fill = `
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-install.packages("mapdata")
+#install.packages("mapdata")
 ```
 
 *Figure 4*. Heatmap to visualize depression rates across countries.
@@ -639,3 +648,26 @@ ggplot(merged_data,aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill 
        y = 'Mean Log GDP per capita') +
   theme_minimal()
 ```
+
+## Other Variables
+
+In the analysis of the World Happiness Report and World Mental Health Data, it was essential to consider variables that would not be included in our model. These variables are "Country"/"Entity" and "Year."
+
+### Year & Country
+Year is a categorical variable representing the years for which the data was collected. It has 13 unique values with varying repetitions. The "Country" variable represents the countries for which the data was collected. It is a categorical variable with 165 unique countries, each with varying repetitions. Here are the values for "Year" and a few examples of the values for "Country" and their repetitions:
+
+| Year  | Repetitions |  Country      | Repetitions |
+|-------|-------------|--------------|-------------|
+| 2005  | 25          | Afghanistan  | 10          |
+| 2006  | 86          | Albania      | 10          |
+| 2007  | 97          | Algeria      | 6           |
+| 2008  | 104         | Zimbabwe     | 12          |
+| 2009  | 106         |              |             |
+| 2010  | 116         |              |             |
+| 2011  | 135         |              |             |
+| 2012  | 131         |              |             |
+| 2013  | 127         |              |             |
+| 2014  | 134         |              |             |
+| 2015  | 133         |              |             |
+| 2016  | 131         |              |             |
+| 2017  | 137         |              |             |
