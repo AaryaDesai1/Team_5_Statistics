@@ -77,25 +77,25 @@ cat("\\begin{table}[ht]\n")
 cat("\\centering\n")
 cat("\\begin{tabular}{rlllll}\n")
 cat("  \\hline\n")
-cat(" & X.Year. & X.2011.81258549932. & X.2012. & X.3.44037392978392. & X.2011.63608741833..2011.9890835803. \\\\ \n")
+cat(" &  & Mean & Median & Standard Deviation & Confidence Interval \\\\ \n")
 cat("  \\hline\n")
-cat("1 & Year & 2011.81258549932 & 2012 & 3.44037392978392 & 2011.63608741833, 2011.9890835803 \\\\ \n")
-cat("  2 & Schizophrenia (\\%) & 0.212139552272557 & 0.1995631215315 & 0.0449828481964651 & 0.209831841963773, 0.21444726258134 \\\\ \n")
-cat("  3 & Bipolar disorder (\\%) & 0.742866832435753 & 0.708245485812 & 0.15141936636854 & 0.735098715326049, 0.750634949545457 \\\\ \n")
-cat("  4 & Eating disorders (\\%) & 0.262934101349963 & 0.20100736754 & 0.171955446575768 & 0.254112442148187, 0.271755760551738 \\\\ \n")
-cat("  5 & Anxiety disorders (\\%) & 4.00797287241487 & 3.555640688435 & 1.27692490042243 & 3.94246406462712, 4.07348168020261 \\\\ \n")
-cat("  6 & Drug use disorders (\\%) & 0.87913947745623 & 0.683396459519 & 0.521437703238378 & 0.852388677731496, 0.905890277180964 \\\\ \n")
-cat("  7 & Depression (\\%) & 3.45995316220667 & 3.47921000422 & 0.641499615848626 & 3.42704294562569, 3.49286337878764 \\\\ \n")
-cat("  8 & Alcohol use disorders (\\%) & 1.66761392176288 & 1.51008248196 & 0.993645695876286 & 1.61663790517902, 1.71858993834674 \\\\ \n")
-cat("  9 & Life Ladder & 5.44776180146005 & 5.34728288650513 & 1.14208059329084 & 5.38917077700806, 5.50635282591203 \\\\ \n")
-cat("  10 & Log GDP per capita &  &  &  & 9.2798276055712, 9.39886802077602 \\\\ \n")
-cat("  11 & Social support &  &  &  & 0.805582977780007, 0.818127123408826 \\\\ \n")
-cat("  12 & Healthy life expectancy at birth & 62.7502291704822 & 64.6199989318848 & 7.201778392354 & 62.3807634984771, 63.1196948424874 \\\\ \n")
-cat("  13 & Freedom to make life choices &  &  &  & 0.726315778657669, 0.741312088225227 \\\\ \n")
-cat("  14 & Generosity &  &  &  & -0.00560998798644518, 0.0116624398441617 \\\\ \n")
-cat("  15 & Perceptions of corruption &  &  &  & 0.74191910347652, 0.76170417653392 \\\\ \n")
-cat("  16 & Positive affect &  &  &  & 0.649588013908746, 0.660527911573264 \\\\ \n")
-cat("  17 & Negative affect &  &  &  & 0.258323311250348, 0.266850923194627 \\\\ \n")
+cat("1 & Year & 2011.813 & 2012 & 3.440 & 2011.636, 2011.989 \\\\ \n")
+cat("  2 & Schizophrenia (\\%) & 0.212 & 0.200 & 0.045 & 0.210, 0.214 \\\\ \n")
+cat("  3 & Bipolar disorder (\\%) & 0.743 & 0.708 & 0.151 & 0.735, 0.751 \\\\ \n")
+cat("  4 & Eating disorders (\\%) & 0.263 & 0.201 & 0.172 & 0.254, 0.272 \\\\ \n")
+cat("  5 & Anxiety disorders (\\%) & 4.008 & 3.556 & 1.277 & 3.942, 4.073 \\\\ \n")
+cat("  6 & Drug use disorders (\\%) & 0.879 & 0.683 & 0.521 & 0.852, 0.906 \\\\ \n")
+cat("  7 & Depression (\\%) & 3.460 & 3.479 & 0.641 & 3.427, 3.493 \\\\ \n")
+cat("  8 & Alcohol use disorders (\\%) & 1.668 & 1.510 & 0.994 & 1.617, 1.719 \\\\ \n")
+cat("  9 & Life Ladder & 5.448 & 5.347 & 1.142 & 5.389, 5.506 \\\\ \n")
+cat("  10 & Log GDP per capita &  &  &  & 9.280, 9.399 \\\\ \n")
+cat("  11 & Social support &  &  &  & 0.806, 0.818 \\\\ \n")
+cat("  12 & Healthy life expectancy at birth & 62.750 & 64.620 & 7.202 & 62.381, 63.120 \\\\ \n")
+cat("  13 & Freedom to make life choices &  &  &  & 0.726, 0.741 \\\\ \n")
+cat("  14 & Generosity &  &  &  & -0.006, 0.012 \\\\ \n")
+cat("  15 & Perceptions of corruption &  &  &  & 0.742, 0.762 \\\\ \n")
+cat("  16 & Positive affect &  &  &  & 0.650, 0.661 \\\\ \n")
+cat("  17 & Negative affect &  &  &  & 0.258, 0.267 \\\\ \n")
 cat("   \\hline\n")
 cat("\\end{tabular}\n")
 cat("\\caption{Descriptive Statistics}\n")
@@ -118,8 +118,8 @@ library(readxl)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
-Happiness_Data <- read_xls("~/Documents/IDS Sem 1/Statistics/Team_5_Statistics/data/DataFortable2.1WHR2023.xls")
-Mental_Health_Data <- read_xlsx("~/Documents/IDS Sem 1/Statistics/Team_5_Statistics/data/Mental health Depression disorder Data.xlsx")
+Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE}
@@ -257,7 +257,7 @@ calculate_descriptive_stats <- function(data) {
 }
 ```
 
-```{r, echo=FALSE, results='hide', message=FALSE}
+```{r, echo=FALSE,results='hide', message=FALSE}
 # Load the xtable package
 library(xtable)
 
@@ -367,7 +367,14 @@ plots <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Log GDP per capita',
          x = 'Depression (%)',
          y = 'Log GDP per capita') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(merged_data, aes(x = `Depression (%)`, y = `Social support`)) +
     geom_point(color = "green", alpha = 0.6) +
@@ -375,7 +382,14 @@ plots <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Social support',
          x = 'Depression (%)',
          y = 'Social support') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(merged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
     geom_point(color = "purple", alpha = 0.6) +
@@ -383,7 +397,14 @@ plots <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Healthy life expectancy at birth',
          x = 'Depression (%)',
          y = 'Healthy life expectancy at birth') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(merged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
     geom_point(color = "orange", alpha = 0.6) +
@@ -391,7 +412,14 @@ plots <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Freedom to make life choices',
          x = 'Depression (%)',
          y = 'Freedom to make life choices') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(merged_data, aes(x = `Depression (%)`, y = Generosity)) +
     geom_point(color = "brown", alpha = 0.6) +
@@ -399,7 +427,14 @@ plots <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Generosity',
          x = 'Depression (%)',
          y = 'Generosity') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(merged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) +
     geom_point(color = "pink", alpha = 0.6) +
@@ -407,7 +442,14 @@ plots <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Perceptions of corruption',
          x = 'Depression (%)',
          y = 'Perceptions of corruption') +
-    theme_minimal()
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    )
 )
 
 # Arrange the plots in a grid
@@ -453,7 +495,14 @@ plots_new <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Log GDP per capita',
          x = 'Depression (%)',
          y = 'Log GDP per capita') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(averaged_data, aes(x = `Depression (%)`, y = `Social support`)) +
     geom_point(color = "green", alpha = 0.6) +
@@ -461,7 +510,14 @@ plots_new <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Social support',
          x = 'Depression (%)',
          y = 'Social support') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(averaged_data, aes(x = `Depression (%)`, y = `Healthy life expectancy at birth`)) +
     geom_point(color = "purple", alpha = 0.6) +
@@ -469,7 +525,14 @@ plots_new <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Healthy life expectancy at birth',
          x = 'Depression (%)',
          y = 'Healthy life expectancy at birth') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(averaged_data, aes(x = `Depression (%)`, y = `Freedom to make life choices`)) +
     geom_point(color = "orange", alpha = 0.6) +
@@ -477,7 +540,14 @@ plots_new <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Freedom to make life choices',
          x = 'Depression (%)',
          y = 'Freedom to make life choices') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(averaged_data, aes(x = `Depression (%)`, y = Generosity)) +
     geom_point(color = "brown", alpha = 0.6) +
@@ -485,7 +555,14 @@ plots_new <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Generosity',
          x = 'Depression (%)',
          y = 'Generosity') +
-    theme_minimal(),
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    ),
 
   ggplot(averaged_data, aes(x = `Depression (%)`, y = `Perceptions of corruption`)) +
     geom_point(color = "pink", alpha = 0.6) +
@@ -493,7 +570,14 @@ plots_new <- list(
     labs(title = 'Scatter Plot: Depression (%) vs Perceptions of corruption',
          x = 'Depression (%)',
          y = 'Perceptions of corruption') +
-    theme_minimal()
+    theme_minimal()+
+    theme(
+        plot.title = element_text(size = rel(0.5)),
+        axis.title.x = element_text(size = rel(0.6)),
+        axis.title.y = element_text(size = rel(0.6)),
+        axis.text.x = element_text(size = rel(0.6)),
+        axis.text.y = element_text(size = rel(0.6))
+    )
 )
 
 # Arrange the plots in a grid
@@ -596,7 +680,7 @@ ggplot(merged_data, aes(x = `Depression (%)`, y = `Lifestyle Category`, color = 
 
 Figure 5.
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.height=6}
 predictor_vars <- c("Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", 
                     "Anxiety disorders (%)", "Depression (%)", "Log GDP per capita", 
                     "Social support", "Freedom to make life choices", "Perceptions of corruption", "Generosity")
@@ -613,20 +697,40 @@ for (var in predictor_vars) {
       labs(title = paste("Box Plot of", var, "by Lifestyle Category"),
            x = "Lifestyle Category",
            y = var) +
-      theme_minimal()
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(0.6)),
+        axis.title.x = element_text(size = rel(0.5)),
+        axis.title.y = element_text(size = rel(0.4)),
+        axis.text.x = element_text(size = rel(0.5)),
+        axis.text.y = element_text(size = rel(0.5)),
+        legend.title = element_text(size = rel(0.3)),
+        legend.text = element_text(size = rel(0.3))
+      )
   } else {
     # For binary predictors, create a bar plot
     p <- ggplot(merged_data, aes(x = .data[[var]], fill = `Lifestyle Category`)) +
       geom_bar(position = "dodge") +
       labs(title = paste("Bar Plot of", var, "by Lifestyle Category"),
-           x = "Lifestyle Category",
+           x = var,
            y = "Frequency") +
-      theme_minimal()
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(0.6)),
+        axis.title.x = element_text(size = rel(0.5)),
+        axis.title.y = element_text(size = rel(0.4)),
+        axis.text.x = element_text(size = rel(0.5)),
+        axis.text.y = element_text(size = rel(0.5)),
+        legend.title = element_text(size = rel(0.3)),
+        legend.text = element_text(size = rel(0.3))
+      )
   }
   plots_rq2[[var]] <- p
 }
 
 grid.arrange(grobs = plots_rq2, ncol = 2)
+
+
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
@@ -654,20 +758,21 @@ ggplot(merged_data,aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill 
 In the analysis of the World Happiness Report and World Mental Health Data, it was essential to consider variables that would not be included in our model. These variables are "Country"/"Entity" and "Year."
 
 ### Year & Country
+
 Year is a categorical variable representing the years for which the data was collected. It has 13 unique values with varying repetitions. The "Country" variable represents the countries for which the data was collected. It is a categorical variable with 165 unique countries, each with varying repetitions. Here are the values for "Year" and a few examples of the values for "Country" and their repetitions:
 
-| Year  | Repetitions |  Country      | Repetitions |
-|-------|-------------|--------------|-------------|
-| 2005  | 25          | Afghanistan  | 10          |
-| 2006  | 86          | Albania      | 10          |
-| 2007  | 97          | Algeria      | 6           |
-| 2008  | 104         | Zimbabwe     | 12          |
-| 2009  | 106         |              |             |
-| 2010  | 116         |              |             |
-| 2011  | 135         |              |             |
-| 2012  | 131         |              |             |
-| 2013  | 127         |              |             |
-| 2014  | 134         |              |             |
-| 2015  | 133         |              |             |
-| 2016  | 131         |              |             |
-| 2017  | 137         |              |             |
+| Year | Repetitions | Country     | Repetitions |
+|------|-------------|-------------|-------------|
+| 2005 | 25          | Afghanistan | 10          |
+| 2006 | 86          | Albania     | 10          |
+| 2007 | 97          | Algeria     | 6           |
+| 2008 | 104         | Zimbabwe    | 12          |
+| 2009 | 106         |             |             |
+| 2010 | 116         |             |             |
+| 2011 | 135         |             |             |
+| 2012 | 131         |             |             |
+| 2013 | 127         |             |             |
+| 2014 | 134         |             |             |
+| 2015 | 133         |             |             |
+| 2016 | 131         |             |             |
+| 2017 | 137         |             |             |
