@@ -1,0 +1,135 @@
+---
+title: "Final_Report_Logistic"
+format: html
+---
+
+## Introduction
+
+There is widespread research looking into how happy a country is based on certain socioeconomic and individual-level factors (***find research***). Furthermore, there is also wide-ranging research looking into various mental health disorders and their impact on quality of life (***find research***). There is a general consensus that the better a countries' socioeconomic status, the higher they score on the happiness index (***find research***). On the other hand, mental health disorders are suggested to be caused by a plethora of factors, such as, genetics, environmental circumstances, financial circumstances, etc. (***find research***). The aim of the current research paper is to gain a better understanding of these two schools of research together. In other words, gaining a clearer understanding of how happiness metrics of a country may be able to predict mental health disorders. On the other hand, how may the prevalence of mental health disorders and certain relevant happiness metrics predict the overall quality of life.
+
+For the same, the data used for this research was obtained from the World Happiness Report for information about happiness metrics \[link1\] and from University of Oxford for information about mental health disorders \[link 2\]. These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables, namely, country, year, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect, negative affect, Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(dplyr)
+library(readxl)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
+unique_values_happiness <- unique(Happiness_Data$`Country name`)
+unique_values_mental <- unique(Mental_Health_Data$Entity)
+common_elements <- intersect(unique_values_mental, unique_values_happiness)
+Happiness_Data <- Happiness_Data[Happiness_Data$`Country name` %in% common_elements, ]
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$`Entity` %in% common_elements, ]
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+unique_years_happy <- unique(Happiness_Data$year)
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$Year %in% unique_years_happy, ]
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"))
+merged_data <- merged_data %>%
+    select(-...11, -`Unique Countries`)
+```
+
+The aim of this research paper was to investigate the following avenues with respect to world happiness and mental health:
+
+1.  To what extent do happiness metrics (log GDP per capita, social support, life expectancy, freedom, perception of corruption, generosity) predict mental health disorders, specifically, depression?
+2.  To what extent do mental health disorders and happiness metrics (schizophrenia, bipolar disorder, eating disorders, anxiety disorders, log GDP per capita, social support, freedom) predict quality of life?
+
+## Method
+
+For the ease of interpretation and data visualization, the countries were split into three different categories: low, middle, and high income countries. This was done on the basis of the variable Log GDP per capita, where the categories were made by equally splitting the countries by dividing the log GDP per capita variable into the 3 parts as stated.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+
+# Calculate quantiles to split data into three income categories
+income_categories <- cut(merged_data$`Log GDP per capita`, breaks = 3, labels = c("Low Income", "Middle Income", "High Income"), include.lowest = TRUE)
+
+merged_data$Income_Category <- income_categories
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+summary(merged_data$Income_Category)
+```
+
+FIRST RESEARCH QUESTION INFO GOES HERE
+
+For the second question, a variable needed to be fabricated from the original life ladder variable. This variable was originally derived from a single-item question asked to citizens about the extent to which they estimate their life expectancy to be affected by smoking, exercise, diet, etc. This was on a continuous scale of 0 to 10. ***Figure \_*** visually depicts the distribution of the original variable life ladder in the dataset.
+
+Figure \_. Histrogram of the distribution of life ladder across countries.
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ggplot(merged_data, aes(x = `Life Ladder`)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", aes(y = ..density..)) +
+  geom_density(color = "navy", size = 1) +
+  labs(x = "Life Ladder",
+       y = "Density", title = "Distribution of Life Ladder with Density overlay") +
+  theme_minimal()
+```
+
+However, in order to gain a clear distinction of how mental disorders predict quality of life, this variable was converted into a binary variable indicated Good Quality of Life versus Bad Quality of Life. This was done using the midpoint of the Life Ladder scale (i.e., 5) and then recoding a Lifestyle Category variable to 0 if the observation was below the median and 1 if it was above.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+#Creating new variable based on the midpoint of Life Ladder
+merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= 5, 1, 0)
+
+# Rename levels with labelss
+merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Bad QoL", "Good QoL"))
+```
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ggplot(merged_data, aes(x = `Lifestyle Category`)) +
+  geom_bar(fill = "skyblue", color = "skyblue") +
+  labs(x = "Lifestyle Category",
+       y = "Count", title = "Distribution of Lifestyle Category") +
+  theme_minimal()
+```
+
+This was a prediction research question, therefore, a training and testing set were created.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(caret)
+
+logistic_data <- merged_data[, c('Income_Category', 'Year', 'Lifestyle Category', 'Schizophrenia (%)', 'Bipolar disorder (%)', 'Eating disorders (%)', 'Anxiety disorders (%)', 'Log GDP per capita', 'Social support', 'Freedom to make life choices')]
+
+logistic_data <- na.omit(logistic_data)
+```
+
+```{r}
+# Set the seed for reproducibility
+set.seed(123)
+
+# Create an index for splitting the data
+index <- createDataPartition(logistic_data$`Lifestyle Category`, p = 0.7, list = FALSE)
+
+# Create the training set
+training_set <- logistic_data[index, ]
+
+# Create the testing set
+testing_set <- logistic_data[-index, ]
+```
+
+```{r}
+logistic_model_train <- glm(`Lifestyle Category` ~ ., data = training_set, family = binomial)
+summary(logistic_model_train)
+```
+
+```{r}
+# Predict using the logistic regression model on the testing set
+predictions <- predict(logistic_model, newdata = testing_set, type = "response")
+
+# Show the first few predictions
+head(predictions)
+```
+
+```{r}
+# Create a confusion matrix
+confusion <- table(Actual = testing_set$`Lifestyle Category`, Predicted = ifelse(predictions > 0.5, 1, 0))
+confusion
+```
+
+## Results
