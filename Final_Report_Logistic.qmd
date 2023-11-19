@@ -100,6 +100,36 @@ logistic_data <- na.omit(logistic_data)
 ```
 
 ```{r}
+
+# Explore the data and data types
+str(logistic_data)
+
+# Identify categorical variables and convert them to factors
+categorical_vars <- c("Income_Category", "Lifestyle Category")
+logistic_data[categorical_vars] <- lapply(logistic_data[categorical_vars], factor)
+```
+
+```{r}
+# Summary statistics for the outcome variable (Income_Category)
+table(logistic_data$`Lifestyle Category`)  # N and %
+```
+
+```{r}
+library(dplyr)
+# Summary statistics for age, sex, chest pain type, cholesterol grouped by heart disease status
+logistic_data %>%
+  group_by(`Lifestyle Category`) %>%
+  summarize(
+    Mean_Year = mean(Year),  # Replace Age with actual variable name
+    Median_Year = median(Year),  # Replace Age with actual variable name
+    Mean_IC = mean(Income_Category),  # Replace Cholesterol with actual variable name
+    Median_IC = median(Income_Category)  # Replace Cholesterol with actual variable name
+    # Add more summary statistics for other variables as needed
+  )
+
+```
+
+```{r}
 # Set the seed for reproducibility
 set.seed(123)
 
