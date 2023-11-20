@@ -5,13 +5,18 @@ format: html
 
 ## Introduction
 
-There is widespread research looking into how happy a country is based on certain socioeconomic and individual-level factors (***find research***). Furthermore, there is also wide-ranging research looking into various mental health disorders and their impact on quality of life (***find research***). There is a general consensus that the better a countries' socioeconomic status, the higher they score on the happiness index (***find research***). On the other hand, mental health disorders are suggested to be caused by a plethora of factors, such as, genetics, environmental circumstances, financial circumstances, etc. (***find research***). The aim of the current research paper is to gain a better understanding of these two schools of research together. In other words, gaining a clearer understanding of how happiness metrics of a country may be able to predict mental health disorders. On the other hand, how may the prevalence of mental health disorders and certain relevant happiness metrics predict the overall quality of life.
+There is widespread research looking into how happy a country is based on certain socioeconomic and individual-level factors (***find research***). Furthermore, there is also wide-ranging research looking into various mental health disorders and their impact on quality of life (***find research***). There is a general consensus that the better a countries' socioeconomic status, the higher they score on the happiness index (***find research***). On the other hand, mental health disorders are suggested to be caused by a plethora of factors, such as, genetics, environmental circumstances, financial circumstances, etc. (***find research***). The aim of the current research paper is to gain a better understanding of these two schools of research together.
 
-For the same, the data used for this research was obtained from the World Happiness Report for information about happiness metrics \[link1\] and from University of Oxford for information about mental health disorders \[link 2\]. These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables, namely, country, year, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect, negative affect, Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
+The prevalence of depression is on the rise across the globe (Bell & Blanchflower, 2019). Furthermore, research has indicated that this may have to do with one's socioeconomic status, where individuals with lower socioeconomic statuses are more likely to experience depressive symptoms (Graham & Pinto, 2019). Contrarily, research has also shown that happiness interventions have been shown to reduce depression amongst individuals (D'raven et a., 2014). Therefore, there is an established correlation between depression and happiness. The current research paper would like to extend these findings and try to establish a predictive inference of depression based on happiness metrics.
+
+On the other hand, there could be a reverse relationship between these factors as well. To better explain this, it is important to understand the concept of Quality of Life (QoL), which refers to the overall well-being of an individual or population (Teoli & Bhardwaj, 2023). This includes having good personal health (mental, physical, and spiritual), strong relationships, good education and social status, healthy work environment, good income, sense of safety/security, freedom to make choices, and healthy physical environment. Based on this definition, the current study could look into how/to what extent mental health disorders and the other QoL metrics mentioned could predict QoL.
+
+For the same, the data used for this research was obtained from the World Happiness Report for information about happiness metrics \[link1\] and from University of Oxford for information about mental health disorders \[link 2\].
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 library(dplyr)
 library(readxl)
+library(ggplot2)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
@@ -35,30 +40,52 @@ merged_data <- merged_data %>%
     select(-...11, -`Unique Countries`)
 ```
 
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+merged_data <- merged_data %>% rename(Country = Entity)
+```
+
 The aim of this research paper was to investigate the following avenues with respect to world happiness and mental health:
 
 1.  To what extent do happiness metrics (log GDP per capita, social support, life expectancy, freedom, perception of corruption, generosity) predict mental health disorders, specifically, depression?
-2.  To what extent do mental health disorders and happiness metrics (schizophrenia, bipolar disorder, eating disorders, anxiety disorders, log GDP per capita, social support, freedom) predict quality of life?
+2.  To what extent do mental health disorders and happiness metrics (schizophrenia, bipolar disorder, eating disorders, anxiety disorders, depression, alcohol use disorder, drug abuse disorders, log GDP per capita, social support, freedom to make choices) predict quality of life?
 
 ## Method
 
-For the ease of interpretation and data visualization, the countries were split into three different categories: low, middle, and high income countries. This was done on the basis of the variable Log GDP per capita, where the categories were made by equally splitting the countries by dividing the log GDP per capita variable into the 3 parts as stated.
+*Materials and Data Merging*
+
+As mentioned earlier, two datasets were used for this study: World Happiness Report (2022) and Mental Health Disorders Data (2022). These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables, namely, country, year, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect, negative affect, Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
+
+*Data Cleaning and Manipulation*
+
+The merged dataset had multiple observations per country, each observation representing a different year. Though combining information by country was an option, this would involve averaging observations across years per country and removing information about time. However, in relation to happiness metrics and mental health, it is important to maintain information regarding time as research suggests that environmental changes across the years can have an impact on these factors (***FIND RESEARCH***). Therefore, observations were not grouped by country by averaging all information across different years.
+
+However, for ease of interpretation of data visualization, countries were split into four different categories: low (\<= \$1,135 per capita), lower-middle (\$1,136-4,465 per capita), upper-middle (\$4,466-13,845 per capita) and high income (\> \$13,845 per capita) countries. This was done as per the latest income group classification put forth by the World Bank (World Bank, 2023). Converting the variable Log GDP per capita to a regular format, countries were then categorized into said income categories.
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 
-# Calculate quantiles to split data into three income categories
-income_categories <- cut(merged_data$`Log GDP per capita`, breaks = 3, labels = c("Low Income", "Middle Income", "High Income"), include.lowest = TRUE)
+# Assuming merged_data is your dataset
 
-merged_data$Income_Category <- income_categories
+# Reverting the log transformation
+merged_data$GDP_per_capita = exp(merged_data$`Log GDP per capita`)
+
+# Define income thresholds
+low_threshold <- 1135
+lower_middle_threshold <- 4465
+upper_middle_threshold <- 13845
+
+# Categorize countries into income groups
+merged_data$Income_Category <- cut(
+  merged_data$GDP_per_capita,
+  breaks = c(-Inf, low_threshold, lower_middle_threshold, upper_middle_threshold, Inf),
+  labels = c("Low Income", "Lower-Middle Income", "Upper-Middle Income", "High Income")
+)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 summary(merged_data$Income_Category)
 ```
 
-FIRST RESEARCH QUESTION INFO GOES HERE
-
-For the second question, a variable needed to be fabricated from the original life ladder variable. This variable was originally derived from a single-item question asked to citizens about the extent to which they estimate their life expectancy to be affected by smoking, exercise, diet, etc. This was on a continuous scale of 0 to 10. ***Figure \_*** visually depicts the distribution of the original variable life ladder in the dataset.
+The last transformation done was in relation to the second research question. Since this question aimed to predict one's lifestyle category based on mental health and happiness metrics, a variable for "lifestyle category" needed to be created. This was done with the help of the variable Life Ladder in the World Happiness dataset. The original variable is called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable). ***Figure \_*** visually depicts the distribution of the original variable life ladder in the dataset.
 
 Figure \_. Histrogram of the distribution of life ladder across countries.
 
@@ -71,15 +98,17 @@ ggplot(merged_data, aes(x = `Life Ladder`)) +
   theme_minimal()
 ```
 
-However, in order to gain a clear distinction of how mental disorders predict quality of life, this variable was converted into a binary variable indicated Good Quality of Life versus Bad Quality of Life. This was done using the midpoint of the Life Ladder scale (i.e., 5) and then recoding a Lifestyle Category variable to 0 if the observation was below the median and 1 if it was above.
+To simplify this variable and create an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), the variable life ladder was transformed. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above. ***Figure \_***shows the distribution of this newly created binary variable, Lifestyle Category.
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 #Creating new variable based on the midpoint of Life Ladder
-merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= 5, 1, 0)
+merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= 5.5, 1, 0)
 
 # Rename levels with labelss
 merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Bad QoL", "Good QoL"))
 ```
+
+Figure \_. Barplot for distribution of Lifestyle Category.
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
 ggplot(merged_data, aes(x = `Lifestyle Category`)) +
@@ -89,7 +118,83 @@ ggplot(merged_data, aes(x = `Lifestyle Category`)) +
   theme_minimal()
 ```
 
-This was a prediction research question, therefore, a training and testing set were created.
+*Exploratory Data Analysis*
+
+**FIRST RESEARCH QUESTION INFO GOES HERE**
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+summary(merged_data)
+```
+
+For the second research question, it was important to gain some insights into the variable descriptive statistics based on the binary variable, i.e., statistics for the Bad QoL category vs. the Good QoL category. *Table \_* provides this information.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(knitr)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Assuming merged_data is your dataset
+
+# Selected predictor variables
+predictor_vars <- c("Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)",
+                    "Anxiety disorders (%)", "Drug use disorders (%)", "Depression (%)",
+                    "Alcohol use disorders (%)", "Log GDP per capita", "Social support",
+                    "Freedom to make life choices")
+
+# Descriptive statistics for predictor variables by Lifestyle Category
+descriptive_stats <- merged_data %>%
+  group_by(`Lifestyle Category`) %>%
+  summarize(across(all_of(predictor_vars), list(mean = ~mean(.), sd = ~sd(.), median = ~median(.), min = ~min(.), max = ~max(.))))
+
+# Convert the descriptive statistics to LaTeX format
+latex_table <- kable(descriptive_stats, "latex")
+```
+
+Table \_. Descriptive Statistics for variables related to research question 2, factored based on the two levels of Lifestyle Category (Bad QoL vs. Good QoL).
+
+```{r, results='asis'}
+cat(latex_table)
+```
+
+The boxplots below help visualize two of these statistics, one mental health disorder and one happiness metric (Figure \_ and Figure \_).
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Eating disorders (%)`, fill = `Lifestyle Category`)) +
+      geom_boxplot() +
+      labs(title = paste("Box Plot of Eating Disorders by Lifestyle Category"),
+           x = "Lifestyle Category",
+           y = "Eating Disorders (%)") +
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(0.6)),
+        axis.title.x = element_text(size = rel(0.5)),
+        axis.title.y = element_text(size = rel(0.4)),
+        axis.text.x = element_text(size = rel(0.5)),
+        axis.text.y = element_text(size = rel(0.5)),
+        legend.title = element_text(size = rel(0.3)),
+        legend.text = element_text(size = rel(0.3))
+      )
+```
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill = `Lifestyle Category`)) +
+      geom_boxplot() +
+      labs(title = paste("Box Plot of Log GDP per cap by Lifestyle Category"),
+           x = "Lifestyle Category",
+           y = "Log GDP per capita") +
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = rel(0.6)),
+        axis.title.x = element_text(size = rel(0.5)),
+        axis.title.y = element_text(size = rel(0.4)),
+        axis.text.x = element_text(size = rel(0.5)),
+        axis.text.y = element_text(size = rel(0.5)),
+        legend.title = element_text(size = rel(0.3)),
+        legend.text = element_text(size = rel(0.3))
+      )
+```
+
+## Results
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 library(caret)
@@ -99,7 +204,7 @@ logistic_data <- merged_data[, c('Income_Category', 'Year', 'Lifestyle Category'
 logistic_data <- na.omit(logistic_data)
 ```
 
-```{r}
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 
 # Explore the data and data types
 str(logistic_data)
@@ -109,27 +214,12 @@ categorical_vars <- c("Income_Category", "Lifestyle Category")
 logistic_data[categorical_vars] <- lapply(logistic_data[categorical_vars], factor)
 ```
 
-```{r}
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Summary statistics for the outcome variable (Income_Category)
 table(logistic_data$`Lifestyle Category`)  # N and %
 ```
 
-```{r}
-library(dplyr)
-# Summary statistics for age, sex, chest pain type, cholesterol grouped by heart disease status
-logistic_data %>%
-  group_by(`Lifestyle Category`) %>%
-  summarize(
-    Mean_Year = mean(Year),  # Replace Age with actual variable name
-    Median_Year = median(Year),  # Replace Age with actual variable name
-    Mean_IC = mean(Income_Category),  # Replace Cholesterol with actual variable name
-    Median_IC = median(Income_Category)  # Replace Cholesterol with actual variable name
-    # Add more summary statistics for other variables as needed
-  )
-
-```
-
-```{r}
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Set the seed for reproducibility
 set.seed(123)
 
@@ -143,12 +233,12 @@ training_set <- logistic_data[index, ]
 testing_set <- logistic_data[-index, ]
 ```
 
-```{r}
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 logistic_model_train <- glm(`Lifestyle Category` ~ ., data = training_set, family = binomial)
 summary(logistic_model_train)
 ```
 
-```{r}
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Predict using the logistic regression model on the testing set
 predictions <- predict(logistic_model, newdata = testing_set, type = "response")
 
@@ -156,10 +246,27 @@ predictions <- predict(logistic_model, newdata = testing_set, type = "response")
 head(predictions)
 ```
 
-```{r}
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Create a confusion matrix
 confusion <- table(Actual = testing_set$`Lifestyle Category`, Predicted = ifelse(predictions > 0.5, 1, 0))
 confusion
 ```
 
-## Results
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(pROC)
+roc()
+```
+
+## 
+
+## References
+
+Bell, D. N., & Blanchflower, D. G. (2019). The well-being of the overemployed and the underemployed and the rise in depression in the UK. *Journal of Economic Behavior & Organization*, *161*, 180-196.
+
+D'raven, L. T. L., Moliver, N., & Thompson, D. (2015). Happiness intervention decreases pain and depression, boosts happiness among primary care patients. *Primary health care research & development*, *16*(2), 114-126.
+
+Graham, C., & Pinto, S. (2019). Using Well-Being Metrics to Assess Social Well-Being and Ill-Being: Lessons from Rising Mortality Rates in the United States. *The Economics of Happiness: How the Easterlin Paradox Transformed Our Understanding of Well-Being and Progress*, 319-353.
+
+Teoli D, Bhardwaj A. Quality Of Life. \[Updated 2023 Mar 27\]. In: StatPearls \[Internet\]. Treasure Island (FL): StatPearls Publishing; 2023 Jan-. Available from: https://www.ncbi.nlm.nih.gov/books/NBK536962/#
+
+*The world by income and region*. WDI - The World by Income and Region. (2023). https://datatopics.worldbank.org/world-development-indicators/the-world-by-income-and-region.html 
