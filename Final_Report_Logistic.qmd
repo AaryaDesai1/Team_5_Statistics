@@ -16,7 +16,10 @@ For the same, the data used for this research was obtained from the World Happin
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 library(dplyr)
 library(readxl)
+library(caret)
 library(ggplot2)
+library(pROC)
+library(car)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
@@ -66,7 +69,7 @@ However, for ease of interpretation of data visualization, countries were split 
 # Assuming merged_data is your dataset
 
 # Reverting the log transformation
-merged_data$GDP_per_capita = exp(merged_data$`Log GDP per capita`)
+merged_data$GDP_per_capita <- exp(merged_data$`Log GDP per capita`)
 
 # Define income thresholds
 low_threshold <- 1135
@@ -75,9 +78,9 @@ upper_middle_threshold <- 13845
 
 # Categorize countries into income groups
 merged_data$Income_Category <- cut(
-  merged_data$GDP_per_capita,
-  breaks = c(-Inf, low_threshold, lower_middle_threshold, upper_middle_threshold, Inf),
-  labels = c("Low Income", "Lower-Middle Income", "Upper-Middle Income", "High Income")
+    merged_data$GDP_per_capita,
+    breaks = c(-Inf, low_threshold, lower_middle_threshold, upper_middle_threshold, Inf),
+    labels = c("Low Income", "Lower-Middle Income", "Upper-Middle Income", "High Income")
 )
 ```
 
@@ -91,17 +94,19 @@ Figure \_. Histrogram of the distribution of life ladder across countries.
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
 ggplot(merged_data, aes(x = `Life Ladder`)) +
-  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", aes(y = ..density..)) +
-  geom_density(color = "navy", size = 1) +
-  labs(x = "Life Ladder",
-       y = "Density", title = "Distribution of Life Ladder with Density overlay") +
-  theme_minimal()
+    geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", aes(y = ..density..)) +
+    geom_density(color = "navy", size = 1) +
+    labs(
+        x = "Life Ladder",
+        y = "Density", title = "Distribution of Life Ladder with Density overlay"
+    ) +
+    theme_minimal()
 ```
 
 To simplify this variable and create an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), the variable life ladder was transformed. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above. ***Figure \_***shows the distribution of this newly created binary variable, Lifestyle Category.
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-#Creating new variable based on the midpoint of Life Ladder
+# Creating new variable based on the midpoint of Life Ladder
 merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= 5.5, 1, 0)
 
 # Rename levels with labelss
@@ -112,10 +117,12 @@ Figure \_. Barplot for distribution of Lifestyle Category.
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
 ggplot(merged_data, aes(x = `Lifestyle Category`)) +
-  geom_bar(fill = "skyblue", color = "skyblue") +
-  labs(x = "Lifestyle Category",
-       y = "Count", title = "Distribution of Lifestyle Category") +
-  theme_minimal()
+    geom_bar(fill = "skyblue", color = "skyblue") +
+    labs(
+        x = "Lifestyle Category",
+        y = "Count", title = "Distribution of Lifestyle Category"
+    ) +
+    theme_minimal()
 ```
 
 *Exploratory Data Analysis*
@@ -136,15 +143,17 @@ library(knitr)
 # Assuming merged_data is your dataset
 
 # Selected predictor variables
-predictor_vars <- c("Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)",
-                    "Anxiety disorders (%)", "Drug use disorders (%)", "Depression (%)",
-                    "Alcohol use disorders (%)", "Log GDP per capita", "Social support",
-                    "Freedom to make life choices")
+predictor_vars <- c(
+    "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)",
+    "Anxiety disorders (%)", "Drug use disorders (%)", "Depression (%)",
+    "Alcohol use disorders (%)", "Log GDP per capita", "Social support",
+    "Freedom to make life choices"
+)
 
 # Descriptive statistics for predictor variables by Lifestyle Category
 descriptive_stats <- merged_data %>%
-  group_by(`Lifestyle Category`) %>%
-  summarize(across(all_of(predictor_vars), list(mean = ~mean(.), sd = ~sd(.), median = ~median(.), min = ~min(.), max = ~max(.))))
+    group_by(`Lifestyle Category`) %>%
+    summarize(across(all_of(predictor_vars), list(mean = ~ mean(.), sd = ~ sd(.), median = ~ median(.), min = ~ min(.), max = ~ max(.))))
 
 # Convert the descriptive statistics to LaTeX format
 latex_table <- kable(descriptive_stats, "latex")
@@ -159,13 +168,15 @@ cat(latex_table)
 The boxplots below help visualize two of these statistics, one mental health disorder and one happiness metric (Figure \_ and Figure \_).
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
- ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Eating disorders (%)`, fill = `Lifestyle Category`)) +
-      geom_boxplot() +
-      labs(title = paste("Box Plot of Eating Disorders by Lifestyle Category"),
-           x = "Lifestyle Category",
-           y = "Eating Disorders (%)") +
-      theme_minimal() +
-      theme(
+ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Eating disorders (%)`, fill = `Lifestyle Category`)) +
+    geom_boxplot() +
+    labs(
+        title = paste("Box Plot of Eating Disorders by Lifestyle Category"),
+        x = "Lifestyle Category",
+        y = "Eating Disorders (%)"
+    ) +
+    theme_minimal() +
+    theme(
         plot.title = element_text(size = rel(0.6)),
         axis.title.x = element_text(size = rel(0.5)),
         axis.title.y = element_text(size = rel(0.4)),
@@ -173,17 +184,19 @@ The boxplots below help visualize two of these statistics, one mental health dis
         axis.text.y = element_text(size = rel(0.5)),
         legend.title = element_text(size = rel(0.3)),
         legend.text = element_text(size = rel(0.3))
-      )
+    )
 ```
 
 ```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
- ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill = `Lifestyle Category`)) +
-      geom_boxplot() +
-      labs(title = paste("Box Plot of Log GDP per cap by Lifestyle Category"),
-           x = "Lifestyle Category",
-           y = "Log GDP per capita") +
-      theme_minimal() +
-      theme(
+ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill = `Lifestyle Category`)) +
+    geom_boxplot() +
+    labs(
+        title = paste("Box Plot of Log GDP per cap by Lifestyle Category"),
+        x = "Lifestyle Category",
+        y = "Log GDP per capita"
+    ) +
+    theme_minimal() +
+    theme(
         plot.title = element_text(size = rel(0.6)),
         axis.title.x = element_text(size = rel(0.5)),
         axis.title.y = element_text(size = rel(0.4)),
@@ -191,15 +204,12 @@ The boxplots below help visualize two of these statistics, one mental health dis
         axis.text.y = element_text(size = rel(0.5)),
         legend.title = element_text(size = rel(0.3)),
         legend.text = element_text(size = rel(0.3))
-      )
+    )
 ```
-
-## Results
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 library(caret)
-
-logistic_data <- merged_data[, c('Income_Category', 'Year', 'Lifestyle Category', 'Schizophrenia (%)', 'Bipolar disorder (%)', 'Eating disorders (%)', 'Anxiety disorders (%)', 'Log GDP per capita', 'Social support', 'Freedom to make life choices')]
+logistic_data <- merged_data[, c("Depression (%)", "Income_Category", "Year", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Positive affect", "Negative affect", "Drug use disorders (%)")]
 
 logistic_data <- na.omit(logistic_data)
 ```
@@ -216,7 +226,7 @@ logistic_data[categorical_vars] <- lapply(logistic_data[categorical_vars], facto
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Summary statistics for the outcome variable (Income_Category)
-table(logistic_data$`Lifestyle Category`)  # N and %
+table(logistic_data$`Lifestyle Category`) # N and %
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
@@ -233,28 +243,79 @@ training_set <- logistic_data[index, ]
 testing_set <- logistic_data[-index, ]
 ```
 
-```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-logistic_model_train <- glm(`Lifestyle Category` ~ ., data = training_set, family = binomial)
-summary(logistic_model_train)
+### Assessing Multicollinearity
+
+We fit a basic regression model, and then we calculate the Variance Inflation Factor (VIF) values for the predictors in the model to assess multicollinearity. Multicollinearity refers to a situation in which two or more predictor variables in a multiple regression model are highly correlated. If these variables are highly correlated, it can be difficult to disentangle the separate effects of the predictors on the response variable.
+
+```{r}
+# Fit a basic model
+model <- glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Social support` + `Freedom to make life choices` + `Positive affect` + `Negative affect` + `Drug use disorders (%)`, data = training_set, family = binomial)
+
+# Calculate VIF
+vif_values <- vif(model)
+
+# Print VIF values
+vif_values
 ```
 
+The VIF values for all predictors in the model were found to be low, indicating that there is no multicollinearity. This suggests that each predictor in the model has a unique contribution to the prediction of the response variable and that the effects of the predictors can be estimated separately.
+
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+train_control <- trainControl(
+    method = "cv",
+    number = 10
+)
+
+logistic_model <- train(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Social support` + `Freedom to make life choices` + `Positive affect` + `Negative affect` + `Drug use disorders (%)`, data = training_set, method = "glm", family = binomial, trControl = train_control)
+summary(logistic_model$finalModel)
+```
+
+## Results
+
+```{r}
 # Predict using the logistic regression model on the testing set
-predictions <- predict(logistic_model, newdata = testing_set, type = "response")
+predictions <- predict(logistic_model, newdata = testing_set, type = "raw")
+predictions <- ifelse(predictions == "Good QoL", 1, 0)
+testing_set$`Lifestyle OneHotEnc` <- as.factor(ifelse(testing_set$`Lifestyle Category` == "Good QoL", 1, 0))
 
-# Show the first few predictions
-head(predictions)
 ```
 
-```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-# Create a confusion matrix
-confusion <- table(Actual = testing_set$`Lifestyle Category`, Predicted = ifelse(predictions > 0.5, 1, 0))
+```{r}
+confusionMatrix(data = as.factor(predictions), reference = as.factor(testing_set$`Lifestyle OneHotEnc`), positive = "1")
+```
+
+```{r}
+# Predict probabilities using the logistic regression model on the testing set
+probabilities <- predict(logistic_model, newdata = testing_set, type = "prob")
+
+# Extract probabilities of the positive class
+positive_probabilities <- probabilities[, "Good QoL"]
+
+# Plot the ROC curve using the probabilities and the actual values from the testing set
+roc_obj <- roc(testing_set$`Lifestyle OneHotEnc`, positive_probabilities)
+plot(roc_obj, print.thres = "best", print.auc = TRUE)
+```
+
+```{r}
+confusion <- table(Actual = testing_set$`Lifestyle Category`, Predicted = ifelse(positive_probabilities > 0.542, 1, 0))
 confusion
 ```
 
-```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-library(pROC)
-roc()
+```{r}
+# Calculate variable importance
+importance <- varImp(logistic_model)
+
+# Print the importance
+print(importance)
+```
+
+```{r}
+
+ggplot(logistic_data, aes(x = `Log GDP per capita`, y = `Eating disorders (%)`, color = `Lifestyle Category`)) +
+    geom_point(alpha = 0.5) +
+    labs(x = "Log GDP per capita", y = "Eating disorders (%)", color = "Quality of Life") +
+    theme_minimal() +
+    ggtitle("Scatterplot of Eating Disorders (%) vs Log GDP per capita")
 ```
 
 ## 
