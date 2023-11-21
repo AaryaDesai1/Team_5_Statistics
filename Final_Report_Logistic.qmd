@@ -278,15 +278,9 @@ summary(logistic_model$finalModel)
 
 **FIRST RESEARCH QUESTION REGRESSION GOES HERE.**
 
-To recap the components of the second research question, the response variable chosen was Lifestyle Category with two levels: Good QoL and Bad QoL. The predictor variables chosen for the model to predict Lifestyle Category can be categorized into mental health disorders (Schizophrenia, Depression, Anixety, Alcohol abuse, Drug use, Bipolar Disorder, and Eatiny Disorder) and happiness metrics (log GDP per capita, social support, and freedom to make choices). Furthermore, research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse and/or drug use. For the same, an overarching "Substance Abuse" variable was created to incorporate an interaction term in the model (i.e., Substance Abuse\*Social Support), to be in line with current psychological and addictive behaviors literature. This was calculated by adding the two variables as it would indicate the total percentage of individuals with alcohol and drug use disorders in a given country in a given year.
+To recap the components of the second research question, the response variable chosen was Lifestyle Category with two levels: Good QoL and Bad QoL. The predictor variables chosen for the model to predict Lifestyle Category can be categorized into mental health disorders (Schizophrenia, Depression, Anixety, Alcohol abuse, Drug use, Bipolar Disorder, and Eatiny Disorder) and happiness metrics (log GDP per capita, social support, and freedom to make choices). Furthermore, research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse and/or drug use. For the same, two interaction terms were included in this logistic regression model (i.e., Alcohol use \* Social Support and Drug Use \* Social Support) to be in line with current psychological and addictive behaviors literature.
 
-```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-merged_data$Substance_Abuse <- merged_data$`Alcohol use disorders (%)` + merged_data$`Drug use disorders (%)`
-```
-
-```{r}
-summary(merged_data$Substance_Abuse)
-```
+**The method used for this question was also a prediction based model, as the aim of this part of the study was to predict QoL based on the predictor variables chosen. The results are as follows:**
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Predict using the logistic regression model on the testing set
