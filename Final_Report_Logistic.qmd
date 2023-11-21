@@ -58,6 +58,10 @@ The aim of this research paper was to investigate the following avenues with res
 
 As mentioned earlier, two datasets were used for this study: World Happiness Report (2022) and Mental Health Disorders Data (2022). These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables, namely, country, year, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect, negative affect, Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
 
+**CHECK BELOW PARAGRAPH. PLEASE ADD OR SUBTRACT INFO IF NEED BE.**
+
+The happiness metrics were a range of factual data collected from census surveys (e.g., GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries). For this dataset, countries were considered to have an acceptable sample size and were included in the dataset if their sample ranged from 1000-3000 individuals. The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation.
+
 *Data Cleaning and Manipulation*
 
 The merged dataset had multiple observations per country, each observation representing a different year. Though combining information by country was an option, this would involve averaging observations across years per country and removing information about time. However, in relation to happiness metrics and mental health, it is important to maintain information regarding time as research suggests that environmental changes across the years can have an impact on these factors (***FIND RESEARCH***). Therefore, observations were not grouped by country by averaging all information across different years.
@@ -272,7 +276,19 @@ summary(logistic_model$finalModel)
 
 ## Results
 
+**FIRST RESEARCH QUESTION REGRESSION GOES HERE.**
+
+To recap the components of the second research question, the response variable chosen was Lifestyle Category with two levels: Good QoL and Bad QoL. The predictor variables chosen for the model to predict Lifestyle Category can be categorized into mental health disorders (Schizophrenia, Depression, Anixety, Alcohol abuse, Drug use, Bipolar Disorder, and Eatiny Disorder) and happiness metrics (log GDP per capita, social support, and freedom to make choices). Furthermore, research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse and/or drug use. For the same, an overarching "Substance Abuse" variable was created to incorporate an interaction term in the model (i.e., Substance Abuse\*Social Support), to be in line with current psychological and addictive behaviors literature. This was calculated by adding the two variables as it would indicate the total percentage of individuals with alcohol and drug use disorders in a given country in a given year.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+merged_data$Substance_Abuse <- merged_data$`Alcohol use disorders (%)` + merged_data$`Drug use disorders (%)`
+```
+
 ```{r}
+summary(merged_data$Substance_Abuse)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # Predict using the logistic regression model on the testing set
 predictions <- predict(logistic_model, newdata = testing_set, type = "raw")
 predictions <- ifelse(predictions == "Good QoL", 1, 0)
@@ -324,9 +340,15 @@ ggplot(logistic_data, aes(x = `Log GDP per capita`, y = `Eating disorders (%)`, 
 
 Bell, D. N., & Blanchflower, D. G. (2019). The well-being of the overemployed and the underemployed and the rise in depression in the UK. *Journal of Economic Behavior & Organization*, *161*, 180-196.
 
+Cherry, K. Mse. (2023, March 3). *A social support system is imperative for Health and well-being*. Verywell Mind. https://www.verywellmind.com/social-support-for-psychological-health-4119970#:\~:text=1%20Poor%20social%20support%20has,Alcohol%20use 
+
 D'raven, L. T. L., Moliver, N., & Thompson, D. (2015). Happiness intervention decreases pain and depression, boosts happiness among primary care patients. *Primary health care research & development*, *16*(2), 114-126.
 
+Eddie, D., Hoffman, L., Vilsaint, C., Abry, A., Bergman, B., Hoeppner, B., \... & Kelly, J. F. (2019). Lived experience in new models of care for substance use disorder: a systematic review of peer recovery support services and recovery coaching. *Frontiers in psychology*, *10*, 1052.
+
 Graham, C., & Pinto, S. (2019). Using Well-Being Metrics to Assess Social Well-Being and Ill-Being: Lessons from Rising Mortality Rates in the United States. *The Economics of Happiness: How the Easterlin Paradox Transformed Our Understanding of Well-Being and Progress*, 319-353.
+
+Horigian, V. E., Schmidt, R. D., & Feaster, D. J. (2021). Loneliness, mental health, and substance use among US young adults during COVID-19. *Journal of psychoactive drugs*, *53*(1), 1-9.
 
 Teoli D, Bhardwaj A. Quality Of Life. \[Updated 2023 Mar 27\]. In: StatPearls \[Internet\]. Treasure Island (FL): StatPearls Publishing; 2023 Jan-. Available from: https://www.ncbi.nlm.nih.gov/books/NBK536962/#
 
