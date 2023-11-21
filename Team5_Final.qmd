@@ -1,0 +1,268 @@
+---
+format: pdf
+editor: visual
+---
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(stringr)
+library(forcats)
+library(geosphere)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(caret)
+library(car)
+library(readr)
+library(dplyr)
+library(knitr)
+library(ISLR)
+library(SmartEDA)
+library(DataExplorer)
+library(cowplot)
+library(gridExtra)
+library(broom)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(readxl)
+library(pROC)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
+unique_values_happiness <- unique(Happiness_Data$`Country name`)
+unique_values_mental <- unique(Mental_Health_Data$Entity)
+common_elements <- intersect(unique_values_mental, unique_values_happiness)
+Happiness_Data <- Happiness_Data[Happiness_Data$`Country name` %in% common_elements, ]
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$`Entity` %in% common_elements, ]
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+unique_years_happy <- unique(Happiness_Data$year)
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$Year %in% unique_years_happy, ]
+merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"))
+merged_data <- merged_data %>%
+    select(-...11, -`Unique Countries`)
+```
+
+**Abstract:**
+
+**Introduction:** There is widespread research looking into how happy a country is based on certain socioeconomic and individual-level factors (***find research***). Furthermore, there is also wide-ranging research looking into various mental health disorders and their impact on quality of life (***find research***). There is a general consensus that the better a countries' socioeconomic status, the higher they score on the happiness index (***find research***). On the other hand, mental health disorders are suggested to be caused by a plethora of factors, such as, genetics, environmental circumstances, financial circumstances, etc. (***find research***). The aim of the current research paper is to gain a better understanding of these two schools of research together.
+
+The prevalence of depression is on the rise across the globe (Bell & Blanchflower, 2019). Furthermore, research has indicated that this may have to do with one's socioeconomic status, where individuals with lower socioeconomic statuses are more likely to experience depressive symptoms (Graham & Pinto, 2019). Contrarily, research has also shown that happiness interventions have been shown to reduce depression amongst individuals (D'raven et a., 2014). Therefore, there is an established correlation between depression and happiness. The current research paper would like to extend these findings and try to establish a predictive inference of depression based on happiness metrics.
+
+On the other hand, there could be a reverse relationship between these factors as well. To better explain this, it is important to understand the concept of Quality of Life (QoL), which refers to the overall well-being of an individual or population (Teoli & Bhardwaj, 2023). This includes having good personal health (mental, physical, and spiritual), strong relationships, good education and social status, healthy work environment, good income, sense of safety/security, freedom to make choices, and healthy physical environment. Based on this definition, the current study could look into how/to what extent mental health disorders and the other QoL metrics mentioned could predict QoL.
+
+For the same, the data used for this research was obtained from the World Happiness Report for information about happiness metrics \[link1\] and from University of Oxford for information about mental health disorders \[link 2\].
+
+**Methods:**
+
+***Merging Data:*** As mentioned earlier, two datasets were used for this study: World Happiness Report (2022) and Mental Health Disorders Data (2022). These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables, namely, country, year, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect, negative affect, Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
+
+***Dataset Information:*** The happiness metrics were a range of factual data collected from census surveys (e.g., GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries). For this dataset, countries were considered to have an acceptable sample size and were included in the dataset if their sample ranged from 1000-3000 individuals. The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation. We then include a categorical variable that represents the continent the country resides in to collapse the countries into different regions (continents).
+
+***EDA:***
+
+*Basic EDA:* Someone needs to fix the plots from the EDA report and include them here
+
+***RQ1 Specific EDA and Steps for Model:***
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+
+selected_columns <- c("Entity", "Year", "Depression (%)",
+                      "Log GDP per capita", "Social support", 
+                      "Healthy life expectancy at birth", "Freedom to make life choices", "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
+
+selected_data <- merged_data[, selected_columns]
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+selected_data <- na.omit(selected_data)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+selected_data$Continent <- countrycode(
+  sourcevar = selected_data$Entity,
+  origin = "country.name",
+  destination = "continent"
+)
+selected_data$Year <- as.factor(selected_data$Year)
+selected_data$Continent <- as.factor(selected_data$Continent)
+
+```
+
+We first identify this is a **prediction problem** and proceed with examining the question as such. Since we are predicting depression % for those in the region (continents), we use logistic regression to build a model and select variables based on *priori* selection. We focus on predictor variables: `Log GDP per Capita`, `Social Support`, `Healthy life expectancy at birth`, `Freedom to make like choice`, `Genorisity`, `Perceptions of corruption`, `Positive affect`, `Negative affect`, `Continent`, and `Year` for our outcome variable `Depression %`. These variables were selected after careful examination of the dataset as a whole and incorporating predictor variables that reflect both economic and social conditions of people in their continent and year.
+
+After building the initial benchmark model with these variables, we asses the significance of the variables using p-values, check the multicollinearity using `VIF()`, and check RMSE to see if our model will be predict well. To improve our model, we first remove variables to see if there is an impact; in the case, `Social Support`. After seeing no improvement, we examine the `Social Support` variable again and break it up into categories where a continent with high social support (above .75) would be considered "High" and those under would be "Low." We then make an interaction term with `Generosity` and `Social support`. After assessing the model again, we see that `Social Support` and the interaction between `Generosity` and `Social support` becomes significant so we keep this current model.
+
+We then evaluate the influential points to see if there are high leverage points that affect the model. After looking at the plots, we remove observatons 221, which had high leverage. After removing these points, we see both `Genorisity` and `Freedom to make life choices` become more significant so we keep them.
+
+After finalizing our model, we make test data to predict on our model to validate our model.
+
+***RQ2 Specific EDA and Steps:***
+
+**Results:**
+
+***General EDA results:***
+
+***RQ1 Results:***
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+
+model <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+
+summary(model)
+vif(model)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
+  method = "lm",
+  trControl = train_control
+)
+print(mod_cv)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+model2 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+
+summary(model2)
+vif(model2)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+selected_data$`Social support category` <- ifelse(selected_data$`Social support` > 0.7, "High", "Low")
+selected_data$`Social support category`<- as.factor(selected_data$`Social support category`)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+
+summary(model3)
+vif(model3)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+selected_data_cooks1 <- selected_data %>%  filter(!(row.names(selected_data) %in% c(221)))
+model4<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
+summary(model6)
+plot(model6)
+vif(model6)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks2, 
+  method = "lm",
+  trControl = train_control
+)
+print(mod_cv)
+```
+
+```{r}
+tab_model(model6, show.se = TRUE)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+test_data <- data.frame(
+  Continent = c("Americas", "Asia"),
+  Year = factor(c(2015, 2014)),  
+  `Log GDP per capita` = c(9.5, 10.0), 
+  `Healthy life expectancy at birth` = c(70, 75),  
+  `Freedom to make life choices` = c(0.7, 0.8),  
+  Generosity = c(0.1, 0.2), 
+  `Perceptions of corruption` = c(0.05, 0.02),
+  `Positive affect` = c(0.8, 0.7),  
+  `Social support category` = c("High", "Low"), 
+  `Negative affect` = c(0.2, 0.15) 
+) %>%
+  rename(
+    `Continent` = Continent,
+    `Year` = Year,
+    `Log GDP per capita` = Log.GDP.per.capita,
+    `Healthy life expectancy at birth` = Healthy.life.expectancy.at.birth,
+    `Freedom to make life choices` = Freedom.to.make.life.choices,
+    `Perceptions of corruption` = Perceptions.of.corruption,
+    `Positive affect` = `Positive.affect`, 
+    `Social support category` = `Social.support.category`,
+    `Negative affect` = `Negative.affect` 
+  )
+
+test_data$Year <- as.factor(test_data$Year)
+test_data$Continent <- as.factor(test_data$Continent)
+
+# Predictions using the model
+predicted <- predict(model6, newdata = test_data)
+
+print(predicted)
+```
+
+***RQ1 Findings:***
+
+1.  **Log GDP per capita (0.25):** For each one-unit increase in log GDP per capita, depression tends to rise by 0.25 percentage points.
+
+2.  **Healthy life expectancy at birth (-0.02):** A one-unit increase in healthy life expectancy is associated with a decrease of 0.02 percentage points in depression.
+
+3.  **Freedom to make life choices (0.35):** When people experience a one-unit increase in the freedom to make life choices, depression tends to increase by 0.35 percentage points.
+
+4.  **Perceptions of corruption (-0.63):** A one-unit increase in perceptions of corruption is associated with a decrease of 0.63 percentage points in depression.
+
+5.  **Generosity (0.25):** An increase in generosity by one unit corresponds to a rise of 0.25 percentage points in depression.
+
+6.  **Positive affect (-0.58):** An increase in positive affect is linked to a decrease of 0.58 percentage points in depression when social support is constant.
+
+7.  **Social support category (Low) (0.24):** Compared to the "High" category, being in the "Low" social support category is associated with an increase of 0.24 percentage points in depression.
+
+8.  **Negative affect (0.84):** An increase in negative affect by one unit is linked to an increase of 0.84 percentage points in depression.
+
+9.  **Interaction: Generosity \* Social support category (Low) (1.26):** The interaction effect indicates that the combination of low social support and higher generosity is associated with an increase of 1.26 percentage points in depression.
+
+***RQ1 Predictions:***
+
+1.  In a country categorized as part of the Americas continent, during the year 2015, with a log GDP per capita of 9.5, a social support categorized "High", a healthy life expectancy at birth of 70 years, freedom to make life choices of 0.7, generosity of 0.1, and perceptions of corruption at 0.05, the estimated depression percentage is predicted to be around 3.37%.
+
+2.  In a country situated in the Asia continent, during the year 2014, with a log GDP per capita of 10.0, a social support categorized as "Low", a healthy life expectancy at birth of 75 years, freedom to make life choices of 0.8, generosity of 0.2, and perceptions of corruption at 0.02, the estimated depression percentage is predicted to be approximately 4.08%.
+
+***RQ1 Plot:***
+
+***RQ2 Results:***
+
+**Conclusion:**
+
+Your report will be an 8-10 page self-contained document describing your analysis. It should be written as a professional document that can be understood by someone with limited statistics background (e.g., a client). **You are also required to submit a single QMD file that includes your code for the EDA and analysis.** The report should be organized as follows:
+
+-   **Abstract**: A few sentences describing the purpose of the analysis, the data, and key results
+
+-   **Introduction**: Provide more background on the data and research questions. Be sure to cite the data and background information appropriately (APA style is fine). Why are these questions worth exploring?
+
+-   **Methods**: Describe the process you used to conduct analysis. This includes EDA and any relevant data cleaning information (e.g., did you exclude missing values? If so, how many? Did you collapse categories for any variables?). Then describe the models you fit, and how you planned to assess the model, including influential points, multicollinearity, and diagnostics. The organization of this section may depend on your particular dataset/analysis, but you may want to break it into subsections such as \"Data,\" \"Models,\" and \"Model assessment.\" Note that you **do not** present any results in this section. This section reflects your statistical analysis plan. For example, you will state how you went about EDA but you will not present findings of the EDA.
+
+-   **Results**: Here you should present results for all aspects of the analysis. The structure of this section should mirror the structure of the methods section. For example, you can start with a few key EDA results (e.g., a table of descriptive statistics), then present model results, then address assessment. This is the section where you will primarily refer to tables and figures. You should have at least 1 figure for each research question that illustrates a key result of the analysis (not a diagnostic plot).
+
+-   **Conclusion**: Describe the key takeaways from your analysis, limitations, and future work that can be done to advance knowledge in this area.
+
+A few things to keep in mind:
+
+-   You should never refer to actual variable names in the text, tables, or figures. For example, if a variable for height is called \"ht\_\_cm,\" you should always say \"height,\" and the first time you mention it you should state that it is measured in cm. In plots and tables, it should say \"height (cm)\"
+
+-   The report should be produced in Quarto and rendered to PDF. All tables and figures should use appropriate labels.
+
+-   Someone should be able to read the abstract and look at the tables and figures and have a pretty good idea of 1) the goals of your analysis, and 2) the key results.
+
+-   I recommend using colorblind-friendly color palettes in your figures. It can be even better to differentiate with line types or symbols instead of relying on color.
+
+-   Keep you audience in mind! A non-statistician should be able to read your report and have a good idea of what you did, even if they may not understand all of the technical details.
+
+-   You can have an appendix if tables or figures are too large to fit into the main text. For example, if you have several predictors, you may want to put a table of model results in the appendix.

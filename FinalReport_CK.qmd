@@ -1,0 +1,203 @@
+---
+echo: FALSE
+editor: visual
+message: FALSE
+warning: FALSE
+output:
+ pdf_document:
+  latex_engine: xelatex
+ top-margin: 0.5in
+geometry: margin = 2cm
+format: pdf
+---
+
+## "Research Question 1 - Linear Regression"
+
+To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depression (outcome variable: continuous) in countries?
+
+In the modeling process for the first research question, our priori variable selection determined the following variables based on their established impact on happiness and well-being. These include
+
+-   Log GDP per capita, which is often associated with better living conditions and higher well-being.
+
+-   Social support, another key predictor, signifies the importance of strong social connections in mental well-being.
+
+-   Healthy life expectancy at birth, reflecting the availability of quality healthcare
+
+-   Freedom to make life choices, indicating the role of personal freedoms in happiness, were also chosen. Generosity, denoting acts of kindness and generosity
+
+-   Perceptions of corruption, as a measure of societal transparency, complete the variable selection.
+
+To further enhance the analysis, we categorized countries into income categories based on their Log GDP per capita using the "cut" function, creating categories for Low Income, Middle Income, and High Income. Additionally, we added the 'Continent' variable as a factor to account for regional variations in happiness metrics. We also converted 'Year' and 'Continent' into factor variables for appropriate modeling and interpretation. These additions and transformations aim to provide a more comprehensive understanding of the factors influencing depression rates in countries.
+
+```{r, echo=FALSE, results='hide', message=FALSE}
+library(dplyr)
+library(readxl)
+library(caret)
+library(car)
+library(ggplot2)
+library(countrycode)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
+unique_values_happiness <- unique(Happiness_Data$`Country name`)
+unique_values_mental <- unique(Mental_Health_Data$Entity)
+common_elements <- intersect(unique_values_mental, unique_values_happiness)
+Happiness_Data <- Happiness_Data[Happiness_Data$`Country name` %in% common_elements, ]
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$`Entity` %in% common_elements, ]
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE}
+unique_years_happy <- unique(Happiness_Data$year)
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$Year %in% unique_years_happy, ]
+merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"))
+merged_data <- merged_data %>%
+    select(-...11, -`Unique Countries`)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE}
+income_categories <- cut(merged_data$`Log GDP per capita`, breaks = 3, labels = c("Low Income", "Middle Income", "High Income"), include.lowest = TRUE)
+merged_data$Income_Category <- income_categories
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE}
+# Add 'Continent' as a factor variable
+merged_data$Continent <- countrycode(
+  sourcevar = merged_data$Entity,
+  origin = "country.name",
+  destination = "continent"
+)
+
+# Convert 'Year' to a factor
+merged_data$Year <- as.factor(merged_data$Year)
+
+# Convert 'Continent' to a factor
+merged_data$Continent <- as.factor(merged_data$Continent)
+```
+
+\
+**Interaction terms:**
+
+In our comprehensive analysis, we incorporated interaction terms to explore how the combined effects of different variables might influence depression outcomes, beyond what could be understood from theri individual impacts. One key interaction we explored was between 'Log GDP per capita' and 'Social support.' The rationale behind this was to investigate how economic factors and social structures might jointly influence mental health outcomes. The interaction plot for this pair of variables displayed varying slopes, suggesting that the impact of GDP on depression rates is moderated by the level of social support in a country. This was further evidenced by the significant interaction term in our model, indicating a dynamic interplay between economic and social factors.
+
+Another interaction of interest was between 'Healthy life expectancy at birth' (HLE) and 'Positive affect.' This aimed to understand how the correlation between life expectancy and depression is affected by the general positivity in a population. The visualization showed a notable interaction, with varying slopes indicating that the protective effect of a higher life expectancy against depression is enhanced by a higher positive affect. This interaction term was also statistically significant in our model, reinforcing its importance in predicting depression rates.
+
+The addition of interaction terms to the linear regression model aimed at understanding the relationship between happiness metrics and depression rates in countries resulted in significant improvements in model performance. The adjusted R-squared value increased substantially from 0.2392 to 0.5727, indicating that the model with interaction terms explains a larger portion of the variance in depression rates, demonstrating improved predictive power. Additionally, the residual standard error decreased from 0.5693 to 0.3971, suggesting a better fit to the data with smaller residuals. Overall, these changes signify that the model with interaction terms provides a more accurate representation of the relationship between the predictor variables and depression rates.
+
+```{r}
+#check for interaction effects
+#✨Example: Interaction between GDP and Social Support
+model_gdp_social <- lm(`Depression (%)` ~ `Log GDP per capita` * `Social support`, data = merged_data)
+#summary(model_gdp_social)
+
+#✨Example: Interaction between HLE and Positive Affect
+model_hle_positive <- lm(`Depression (%)` ~ `Healthy life expectancy at birth` * `Positive affect`, data = merged_data)
+#summary(model_hle_positive)
+
+# Example: Interaction between Freedom to Choose and Negative Affect
+model_freedom_negative <- lm(`Depression (%)` ~ `Freedom to make life choices` * `Negative affect`, data = merged_data)
+#summary(model_freedom_negative)
+
+#✨ Example: Interaction between Generosity and Corruption Perception
+model_generosity_corruption <- lm(`Depression (%)` ~ Generosity * `Perceptions of corruption`, data = merged_data)
+#summary(model_generosity_corruption)
+```
+
+```{r}
+#Interaction effect (GDP & Social Suppport)
+merged_data$Social_support_category <- cut(merged_data$`Social support`, 
+                                           breaks=3, 
+                                           labels=c("Low", "Medium", "High"))
+
+# Plotting the interaction effect
+ggplot(merged_data, aes(x=`Log GDP per capita`, y=`Depression (%)`, color=Social_support_category)) +
+  geom_point(alpha=0.6) +
+  geom_smooth(method="lm", se=FALSE) +
+  labs(title="Interaction Effect of GDP and Social Support on Depression",
+       x="Log GDP per capita", y="Depression (%)") +
+  theme_minimal() +
+  theme(legend.title=element_blank())
+```
+
+```{r}
+# ✨keep
+#Interaction effect(Positive affect & HLE)
+merged_data$Positive_affect_cat <- cut(merged_data$`Positive affect`, breaks=3, labels=c("Low", "Medium", "High"))
+
+ggplot(merged_data, aes(x=`Healthy life expectancy at birth`, y=`Depression (%)`, color=Positive_affect_cat)) +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm", se=FALSE) +
+  labs(title="Interaction Effect of HLE and Positive Affect on Depression",
+       x="Healthy life expectancy at birth", y="Depression (%)") +
+  theme_minimal() +
+  theme(legend.title=element_blank())
+```
+
+**Model:**
+
+The primary model constructed was a linear regression, aimed at examining how various happiness metrics predict depression rates. Our predictors included 'Log GDP per capita,' 'Social support,' 'Healthy life expectancy at birth,' 'Freedom to make life choices,' 'Perceptions of corruption,' 'Generosity,' 'Positive affect,' and 'Negative affect.' We also incorporated 'Income Category,' 'Continent,' and 'Year' as categorical variables to control for economic and geographical factors. The linear regression model assumes a linear relationship between predictors and the response variable depression rates.
+
+```{r}
+#without interaction terms, check for multicollinearity
+model <- lm(`Depression (%)` ~ `Log GDP per capita` + Income_Category + `Social support`  +
+                  `Freedom to make life choices` + Generosity + `Perceptions of corruption` + 
+                  `Positive affect` + `Negative affect` + Continent + Year, 
+                  data = merged_data)
+vif(model)
+summary(model)
+```
+
+```{r}
+par(mfrow = c(2, 2), mar = c(3, 4, 2, 1), mgp = c(2, 1, 0),cex.axis=0.8,cex.lab=0.8)
+plot(model)
+```
+
+```{r}
+# fit the model
+# Run the linear model with specified predictors, factor variables, and interaction terms
+final_model <- lm(`Depression (%)` ~ `Log GDP per capita` + Income_Category + `Social support` +`Healthy life expectancy at birth` * `Positive affect` 
++ `Log GDP per capita` * `Social support` +
+                  `Freedom to make life choices` + Generosity + `Perceptions of corruption` + 
+                  `Positive affect` + `Negative affect` + Continent + Year, 
+                  data = merged_data)
+
+summary(final_model)
+vif(final_model)
+```
+
+In order to assess the performance of the regression model developed to predict depression rates, we employed cross-validation, a robust technique for evaluating model accuracy. Specifically, we utilized the "cv" (cross-validation) method with 10-fold cross-validation, which divides the dataset into ten subsets, trains the model on nine subsets, and evaluates it on the remaining one. This process is repeated ten times, ensuring that each subset serves as both a training and testing set, thus providing a comprehensive evaluation of the model's performance.
+
+```{r}
+## Train the model using cross-validation with the specified predictors
+set.seed(921)
+cv_control <- trainControl(method = "cv", number = 10)
+
+cv_model <- train(`Depression (%)` ~ `Log GDP per capita` + Income_Category + `Social support` + 
+                  `Healthy life expectancy at birth` * `Positive affect` + `Log GDP per capita` * `Social support` +
+                  `Freedom to make life choices` + Generosity + `Perceptions of corruption` + 
+                  `Positive affect` + `Negative affect` + Continent + Year, 
+                  data = na.omit(merged_data),  # Exclude rows with missing values
+                  method = "lm", 
+                  trControl = cv_control)
+
+print(cv_model)
+```
+
+```{r}
+# Extracting the results from the cross-validated model
+results <- cv_model$results
+
+# Displaying the RMSE and MAE
+rmse <- results$RMSE[1]
+mae <- results$MAE[1]
+
+cat("RMSE:", rmse, "\n")
+cat("MAE:", mae, "\n")
+```
+
+**Model assessment and results:**
+
+The coefficients from the linear regression model provide valuable insights into the factors influencing depression rates. Notably, a higher log GDP per capita is associated with lower depression rates, suggesting that economic prosperity can contribute to better mental health outcomes. Additionally, strong social support and longer healthy life expectancy at birth are linked to reduced depression rates, highlighting the importance of social connections and overall health. Conversely, higher perceptions of corruption and greater negative affect are associated with higher depression rates, underscoring the negative impact of societal trust and negative emotional experiences on mental well-being. The analysis indicates that happiness metrics, including higher log GDP per capita, increased social support, longer healthy life expectancy, and lower perceptions of corruption, are associated with lower rates of depression in countries. These findings highlight the significance of economic prosperity, social connections, health, and trust in predicting mental health outcomes, while freedom and generosity did not directly impact depression rates.
+
+The cross-validated linear linear regression model showed an RMSE of 0.5603 and an MAE of 0.4307, indicating a reasonable model fit. Our model has a multiple R-squared of 0.2851, indicating that the predictors collectively explain 28.51% of the variance in depression rates. The F-statistics tests the overall significance of the model, and the low p-value (\< 2.2e-16) suggests that the model as a whole is statistically significant.

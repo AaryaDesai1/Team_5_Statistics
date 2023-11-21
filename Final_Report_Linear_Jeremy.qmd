@@ -104,13 +104,12 @@ selected_data$Continent <- countrycode(
   origin = "country.name",
   destination = "continent"
 )
-```
-
-```{r}
 selected_data$Year <- as.factor(selected_data$Year)
 selected_data$Continent <- as.factor(selected_data$Continent)
 
+```
 
+```{r}
 
 model <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
@@ -140,6 +139,7 @@ print(mod_cv)
 model2 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
 summary(model2)
+vif(model2)
 ```
 
 ```{r}
@@ -157,9 +157,17 @@ print(mod_cv)
 ```
 
 ```{r}
-model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`*`Social support`, data = selected_data)
+selected_data$`Social support category` <- ifelse(selected_data$`Social support` > 0.7, "High", "Low")
+selected_data$`Social support category`<- as.factor(selected_data$`Social support category`)
+
+```
+
+```{r}
+model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
 summary(model3)
+vif(model3)
+plot(model3)
 ```
 
 ```{r}
@@ -168,7 +176,7 @@ set.seed(10)
 train_control <- trainControl(method = "cv", number = 10)
 
 mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`*`Social support`, data=selected_data, 
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
   method = "lm",
   trControl = train_control
 )
@@ -180,6 +188,7 @@ print(mod_cv)
 model4 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`, data = selected_data)
 
 summary(model4)
+vif(model4)
 ```
 
 ```{r}
@@ -223,10 +232,28 @@ plot(model5, which=5)
 ```{r}
 # remove observation 221 from cooks
 selected_data_cooks1 <- selected_data %>%  filter(!(row.names(selected_data) %in% c(221)))
-model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices`*`Perceptions of corruption` + Generosity + `Positive affect`*`Social support` + `Negative affect`, data=selected_data_cooks1)
+model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
 summary(model6)
 plot(model6)
 vif(model6)
+```
+
+```{r}
+# remove observation 221 from cooks
+selected_data_cooks2 <- selected_data_cooks1 %>%  filter(!(row.names(selected_data_cooks1) %in% c(220)))
+model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks2)
+summary(model6)
+plot(model6)
+vif(model6)
+```
+
+```{r}
+plot1 <- ggplot(data = selected_data, aes(x = `Depression (%)`, y = Generosity, color = `Social support category`)) +
+  geom_point() +
+  geom_smooth(method = "lm", aes(group = `Social support category`), se = FALSE) +
+  ggtitle("Scatter Plot of Price vs. Bathrooms")
+
+plot1
 ```
 
 ```{r}
@@ -235,7 +262,7 @@ set.seed(10)
 train_control <- trainControl(method = "cv", number = 10)
 
 mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices`*`Perceptions of corruption` + Generosity + `Positive affect`*`Social support` + `Negative affect`, data=selected_data_cooks1, 
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks2, 
   method = "lm",
   trControl = train_control
 )
@@ -252,19 +279,18 @@ test_data <- data.frame(
   Generosity = c(0.1, 0.2), 
   `Perceptions of corruption` = c(0.05, 0.02),
   `Positive affect` = c(0.8, 0.7),  
-  `Social support` = c(0.9, 0.85), 
+  `Social support category` = c("High", "Low"), 
   `Negative affect` = c(0.2, 0.15) 
 ) %>%
   rename(
     `Continent` = Continent,
     `Year` = Year,
     `Log GDP per capita` = Log.GDP.per.capita,
-    `Social support` = Social.support,
     `Healthy life expectancy at birth` = Healthy.life.expectancy.at.birth,
     `Freedom to make life choices` = Freedom.to.make.life.choices,
     `Perceptions of corruption` = Perceptions.of.corruption,
     `Positive affect` = `Positive.affect`, 
-    `Social support` = `Social.support`,
+    `Social support category` = `Social.support.category`,
     `Negative affect` = `Negative.affect` 
   )
 
