@@ -1,0 +1,302 @@
+---
+title: "Final_Report_Linear_Jeremy"
+format: pdf
+editor: visual
+---
+
+## Steps
+
+1.  Copy Aarya's setup to save time
+2.  Delete observations with NA values
+3.  Make first benchmark model
+4.  Improve model
+5.  Add interaction terms
+6.  Use Cook's distance to remove high leverage points
+7.  Make test data to do predictions
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(stringr)
+library(forcats)
+library(geosphere)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(corrplot)
+library(caret)
+library(car)
+library(readr)
+library(dplyr)
+library(knitr)
+library(ISLR)
+library(SmartEDA)
+library(DataExplorer)
+library(cowplot)
+library(gridExtra)
+library(broom)
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+library(readxl)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
+unique_values_happiness <- unique(Happiness_Data$`Country name`)
+unique_values_mental <- unique(Mental_Health_Data$Entity)
+common_elements <- intersect(unique_values_mental, unique_values_happiness)
+Happiness_Data <- Happiness_Data[Happiness_Data$`Country name` %in% common_elements, ]
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$`Entity` %in% common_elements, ]
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+unique_years_happy <- unique(Happiness_Data$year)
+Mental_Health_Data <- Mental_Health_Data[Mental_Health_Data$Year %in% unique_years_happy, ]
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+merged_data <- merge(Mental_Health_Data, Happiness_Data, by.x = c("Entity", "Year"), by.y = c("Country name", "year"))
+merged_data <- merged_data %>%
+    select(-...11, -`Unique Countries`)
+```
+
+RQ1: To what extent do happiness metrics (predictor variables: log GDP per capita, social support, life expectancy, freedom, perception of corrpution, generosity) predict mental health disorders, specifically, depress ion (outcome variable: continuous) in countries?
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+all_columns <- names(merged_data)
+
+print(all_columns)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+all_columns <- names(merged_data)
+
+print(all_columns)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# my first benchmark model, with the majority of variables to see what should be removed 
+
+selected_columns <- c("Entity", "Year", "Schizophrenia (%)", "Bipolar disorder (%)", 
+                      "Eating disorders (%)", "Anxiety disorders (%)", 
+                      "Drug use disorders (%)", "Depression (%)", 
+                      "Alcohol use disorders (%)", "Life Ladder", 
+                      "Log GDP per capita", "Social support", 
+                      "Healthy life expectancy at birth", "Freedom to make life choices", 
+                      "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
+
+selected_data <- merged_data[, selected_columns]
+
+selected_data <- na.omit(selected_data)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+library(countrycode)
+
+all_columns <- names(selected_data)
+
+print(all_columns)
+```
+
+```{r}
+selected_data$Continent <- countrycode(
+  sourcevar = selected_data$Entity,
+  origin = "country.name",
+  destination = "continent"
+)
+```
+
+```{r}
+selected_data$Year <- as.factor(selected_data$Year)
+selected_data$Continent <- as.factor(selected_data$Continent)
+
+
+
+model <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+
+summary(model)
+```
+
+```{r}
+vif(model)
+```
+
+```{r}
+# use cross validation to get RMSE
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
+  method = "lm",
+  trControl = train_control
+)
+# Get a more detailed output of the model
+print(mod_cv)
+```
+
+```{r}
+model2 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+
+summary(model2)
+```
+
+```{r}
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
+  method = "lm",
+  trControl = train_control
+)
+# Get a more detailed output of the model
+print(mod_cv)
+```
+
+```{r}
+model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`*`Social support`, data = selected_data)
+
+summary(model3)
+```
+
+```{r}
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`*`Social support`, data=selected_data, 
+  method = "lm",
+  trControl = train_control
+)
+# Get a more detailed output of the model
+print(mod_cv)
+```
+
+```{r}
+model4 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`, data = selected_data)
+
+summary(model4)
+```
+
+```{r}
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect`*`Social support` + `Negative affect`, data=selected_data, 
+  method = "lm",
+  trControl = train_control
+)
+# Get a more detailed output of the model
+print(mod_cv)
+```
+
+```{r}
+model5 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices`*`Perceptions of corruption` + Generosity + `Positive affect`*`Social support` + `Negative affect`, data = selected_data)
+
+summary(model5)
+```
+
+```{r}
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+ `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices`*`Perceptions of corruption` + Generosity + `Positive affect`*`Social support` + `Negative affect`, data=selected_data, 
+  method = "lm",
+  trControl = train_control
+)
+# Get a more detailed output of the model
+print(mod_cv)
+```
+
+```{r}
+plot(model5, which=5)
+```
+
+```{r}
+# remove observation 221 from cooks
+selected_data_cooks1 <- selected_data %>%  filter(!(row.names(selected_data) %in% c(221)))
+model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices`*`Perceptions of corruption` + Generosity + `Positive affect`*`Social support` + `Negative affect`, data=selected_data_cooks1)
+summary(model6)
+plot(model6)
+vif(model6)
+```
+
+```{r}
+set.seed(10)
+
+train_control <- trainControl(method = "cv", number = 10)
+
+mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices`*`Perceptions of corruption` + Generosity + `Positive affect`*`Social support` + `Negative affect`, data=selected_data_cooks1, 
+  method = "lm",
+  trControl = train_control
+)
+print(mod_cv)
+```
+
+```{r}
+test_data <- data.frame(
+  Continent = c("Americas", "Asia"),
+  Year = factor(c(2015, 2014)),  
+  `Log GDP per capita` = c(9.5, 10.0), 
+  `Healthy life expectancy at birth` = c(70, 75),  
+  `Freedom to make life choices` = c(0.7, 0.8),  
+  Generosity = c(0.1, 0.2), 
+  `Perceptions of corruption` = c(0.05, 0.02),
+  `Positive affect` = c(0.8, 0.7),  
+  `Social support` = c(0.9, 0.85), 
+  `Negative affect` = c(0.2, 0.15) 
+) %>%
+  rename(
+    `Continent` = Continent,
+    `Year` = Year,
+    `Log GDP per capita` = Log.GDP.per.capita,
+    `Social support` = Social.support,
+    `Healthy life expectancy at birth` = Healthy.life.expectancy.at.birth,
+    `Freedom to make life choices` = Freedom.to.make.life.choices,
+    `Perceptions of corruption` = Perceptions.of.corruption,
+    `Positive affect` = `Positive.affect`, 
+    `Social support` = `Social.support`,
+    `Negative affect` = `Negative.affect` 
+  )
+
+test_data$Year <- as.factor(test_data$Year)
+test_data$Continent <- as.factor(test_data$Continent)
+
+# Predictions using the model
+predicted <- predict(model6, newdata = test_data)
+
+print(predicted)
+```
+
+Final Model Findings:
+
+1\. Log GDP per capita (0.22): For each one-unit increase in log GDP per capita, depression tends to rise by 0.22 percentage points.
+
+2\. Healthy life expectancy at birth (-0.02): A one-unit increase in healthy life expectancy is associated with a decrease of 0.02 percentage points in depression.
+
+3\. Freedom to make life choices (2.15): When people experience a one-unit increase in the freedom to make life choices, depression tends to increase by 2.15 percentage points.
+
+4\. Perceptions of corruption (1.19): A one-unit increase in perceptions of corruption is associated with an increase of 1.19 percentage points in depression.
+
+5\. Generosity (0.20): An increase in generosity by one unit corresponds to a rise of 0.20 percentage points in depression.
+
+6\. Positive affect (-3.24): An increase in positive affect is linked to a decrease of 3.24 percentage points in depression when social support is constant.
+
+7\. Social support (-1.66): A one-unit increase in social support is associated with a decrease of 1.66 percentage points in depression.
+
+8\. Negative affect (0.96): An increase in negative affect by one unit is linked to an increase of 0.96 percentage points in depression.
+
+Prediction:
+
+1.  In a country categorized as part of the Americas continent, during the year 2015, with a log GDP per capita of 9.5, a social support score of 0.8, a healthy life expectancy at birth of 70 years, freedom to make life choices of 0.7, generosity of 0.1, and perceptions of corruption at 0.05, the estimated depression percentage is predicted to be around 3.16%.
+
+2.  In a country situated in the Asia continent, during the year 2014, with a log GDP per capita of 10.0, a social support score of 0.9, a healthy life expectancy at birth of 75 years, freedom to make life choices of 0.8, generosity of 0.2, and perceptions of corruption at 0.02, the estimated depression percentage is predicted to be approximately 3.48%.
