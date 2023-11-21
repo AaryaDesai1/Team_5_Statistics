@@ -213,7 +213,7 @@ ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 library(caret)
-logistic_data <- merged_data[, c("Depression (%)", "Income_Category", "Year", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Positive affect", "Negative affect", "Drug use disorders (%)")]
+logistic_data <- merged_data[, c("Depression (%)", "Income_Category", "Year", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Positive affect", "Negative affect", "Drug use disorders (%)", "Alcohol use disorders (%)", 'Year')]
 
 logistic_data <- na.omit(logistic_data)
 ```
@@ -265,12 +265,17 @@ vif_values
 The VIF values for all predictors in the model were found to be low, indicating that there is no multicollinearity. This suggests that each predictor in the model has a unique contribution to the prediction of the response variable and that the effects of the predictors can be estimated separately.
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+
+training_set$`Lifestyle Category` <- relevel(training_set$`Lifestyle Category`, ref = "Bad QoL")
+
 train_control <- trainControl(
     method = "cv",
     number = 10
 )
 
-logistic_model <- train(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Social support` + `Freedom to make life choices` + `Positive affect` + `Negative affect` + `Drug use disorders (%)`, data = training_set, method = "glm", family = binomial, trControl = train_control)
+
+
+logistic_model <- train(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Social support` + `Freedom to make life choices` + `Drug use disorders (%)` + Year +  `Alcohol use disorders (%)` * `Social support` + `Drug use disorders (%)` * `Social support`, data = training_set, method = "glm", family = binomial, trControl = train_control)
 summary(logistic_model$finalModel)
 ```
 
@@ -279,6 +284,27 @@ summary(logistic_model$finalModel)
 **FIRST RESEARCH QUESTION REGRESSION GOES HERE.**
 
 To recap the components of the second research question, the response variable chosen was Lifestyle Category with two levels: Good QoL and Bad QoL. The predictor variables chosen for the model to predict Lifestyle Category can be categorized into mental health disorders (Schizophrenia, Depression, Anixety, Alcohol abuse, Drug use, Bipolar Disorder, and Eatiny Disorder) and happiness metrics (log GDP per capita, social support, and freedom to make choices). Furthermore, research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse and/or drug use. For the same, two interaction terms were included in this logistic regression model (i.e., Alcohol use \* Social Support and Drug Use \* Social Support) to be in line with current psychological and addictive behaviors literature.
+
+### Logistic Regression Model Output Summary
+
+| Variable                                  | Estimate  | Std. Error | z value | Pr(\>           |
+|----------------------|-------------|-------------|-------------|-------------|
+| Intercept                                 | -52.35236 | 67.33324   | -0.778  | 0.4369          |
+| Depression (%)                            | -1.09615  | 0.26180    | -4.187  | 2.83e-05 \*\*\* |
+| Schizophrenia (%)                         | 10.07029  | 5.55143    | 1.814   | 0.0697 .        |
+| Bipolar disorder (%)                      | 2.54807   | 1.39493    | 1.827   | 0.0678 .        |
+| Eating disorders (%)                      | 10.03718  | 2.10474    | 4.769   | 1.85e-06 \*\*\* |
+| Anxiety disorders (%)                     | -0.15576  | 0.16797    | -0.927  | 0.3538          |
+| Log GDP per capita                        | 0.46577   | 0.24318    | 1.915   | 0.0554 .        |
+| Social support                            | 7.42898   | 6.12312    | 1.213   | 0.2250          |
+| Freedom to make life choices              | 7.00062   | 1.08158    | 6.473   | 9.63e-11 \*\*\* |
+| Drug use disorders (%)                    | -3.03971  | 4.47484    | -0.679  | 0.4970          |
+| Year                                      | 0.01618   | 0.03335    | 0.485   | 0.6276          |
+| Alcohol use disorders (%)                 | 2.24420   | 1.75640    | 1.278   | 0.2013          |
+| Social support: Alcohol use disorders (%) | -2.02845  | 2.00845    | -1.010  | 0.3125          |
+| Social support: Drug use disorders (%)    | 4.78372   | 5.33878    | 0.896   | 0.3702          |
+
+The logistic regression analysis uncovered meaningful connections between predictor variables and the Lifestyle Category. Exponentiating the coefficients provides a lens to interpret the effects on odds. Notably, individuals with higher levels of Depression (%) experience a substantial 33.4% decrease in the odds ratio of belonging to specific lifestyle categories, underscoring the influential role of mental health in shaping lifestyle choices. Moreover, a 0.0001 unit increase in Freedom to make life choices remarkably boost the odds ratio by 10.9%, highlighting the pivotal role of autonomy in determining one's lifestyle. Eating disorders (%) also exhibit a noteworthy positive association with lifestyle choices, where every 0.0001 unit increase in eating disorders percent in a population corresponds to a 22.86% increase in the odds ratio of having a Good Quality of Life, indicating a significant impact of eating habits on lifestyle preferences. Although variables like Schizophrenia (%), Bipolar disorder (%), and Log GDP per capita show potential trends, they did not attain conventional significance levels. These findings contribute valuable insights into the intricate interplay of mental health, freedom, and eating habits in shaping lifestyle choices.
 
 **The method used for this question was also a prediction based model, as the aim of this part of the study was to predict QoL based on the predictor variables chosen. The results are as follows:**
 
@@ -294,6 +320,8 @@ testing_set$`Lifestyle OneHotEnc` <- as.factor(ifelse(testing_set$`Lifestyle Cat
 confusionMatrix(data = as.factor(predictions), reference = as.factor(testing_set$`Lifestyle OneHotEnc`), positive = "1")
 ```
 
+The confusion matrix and associated statistics provide an evaluation of the logistic regression model's performance. The model was assessed using a default threshold of 0.5, where the positive class corresponds to "Good Quality of Life" (QoL). The accuracy of the model is 90.07%, indicating the proportion of correctly classified instances among all predictions. The Kappa statistic, which considers agreement by chance, is 0.8004, suggesting substantial agreement beyond chance. Sensitivity (True Positive Rate) is 89.74%, indicating the model's ability to correctly identify individuals with a Good QoL, while specificity (True Negative Rate) is 90.35%, reflecting the model's proficiency in identifying those without a Good QoL. The positive predictive value (PPV) is 88.83%, representing the probability of actually having a Good QoL given a positive prediction, and the negative predictive value (NPV) is 91.15%, representing the probability of not having a Good QoL given a negative prediction. Overall, the balanced accuracy is high at 90.05%, indicating a well-performing model for distinguishing between the two classes.
+
 ```{r}
 # Predict probabilities using the logistic regression model on the testing set
 probabilities <- predict(logistic_model, newdata = testing_set, type = "prob")
@@ -306,20 +334,19 @@ roc_obj <- roc(testing_set$`Lifestyle OneHotEnc`, positive_probabilities)
 plot(roc_obj, print.thres = "best", print.auc = TRUE)
 ```
 
-```{r}
-confusion <- table(Actual = testing_set$`Lifestyle Category`, Predicted = ifelse(positive_probabilities > 0.542, 1, 0))
+The ROC curve analysis further enhances the evaluation of the logistic regression model's discriminatory power. The Area Under the Curve (AUC) is 0.953, indicating a high level of accuracy in distinguishing between the two classes. The optimal threshold identified by the ROC curve analysis is 0.488, representing a balanced point that maximizes both sensitivity and specificity. At this threshold, the model achieves a sensitivity of 90.3%, denoting its ability to correctly identify individuals with a "Good Quality of Life" (QoL), and a specificity of 89.9%, signifying its proficiency in correctly classifying those without a "Good QoL." This balanced threshold contributes to the model's ability to maintain high performance across both classes. The associated confusion matrix at the optimal threshold is as follows:
+
+| Actual/Predicted | Bad QoL | Good QoL |
+|------------------|---------|----------|
+| Bad QoL          | 205     | 23       |
+| Good QoL         | 19      | 176      |
+
+```{r, include = FALSE}
+confusion <- table(Actual = testing_set$`Lifestyle Category`, Predicted = ifelse(positive_probabilities > 0., 1, 0))
 confusion
 ```
 
-```{r}
-# Calculate variable importance
-importance <- varImp(logistic_model)
-
-# Print the importance
-print(importance)
-```
-
-```{r}
+```{r, echo = FALSE}
 
 ggplot(logistic_data, aes(x = `Log GDP per capita`, y = `Eating disorders (%)`, color = `Lifestyle Category`)) +
     geom_point(alpha = 0.5) +
