@@ -61,11 +61,48 @@ For the same, the data used for this research was obtained from the World Happin
 
 ***Merging Data:*** As mentioned earlier, two datasets were used for this study: World Happiness Report (2022) and Mental Health Disorders Data (2022). These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables, namely, country, year, life ladder, log GDP per capita, social support, life expectancy at birth, freedom, perception of corruption, generosity, positive affect, negative affect, Alcohol Use Disorders, Drug Use Disorders, Schizophrenia, Bipolar Disorders, Anxiety Disorders, Eating Disorders, and Depression.
 
-***Dataset Information:*** The happiness metrics were a range of factual data collected from census surveys (e.g., GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries). For this dataset, countries were considered to have an acceptable sample size and were included in the dataset if their sample ranged from 1000-3000 individuals. The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation. We then include a categorical variable that represents the continent the country resides in to collapse the countries into different regions (continents).
+***Dataset Information:*** The happiness metrics were a range of factual data collected from census surveys (e.g., GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries). For this dataset, countries were considered to have an acceptable sample size and were included in the dataset if their sample ranged from 1000-3000 individuals. The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation.
+
+***Data Cleaning and Manipulation:*** The merged dataset had multiple observations per country, each observation representing a different year. Though combining information by country was an option, this would involve averaging observations across years per country and removing information about time. However, in relation to happiness metrics and mental health, it is important to maintain information regarding time as research suggests that environmental changes across the years can have an impact on these factors (***FIND RESEARCH***). Therefore, observations were not grouped by country by averaging all information across different years. Instead, we then include a categorical variable that represents the continent the country resides in to collapse the countries into different regions (continents).
+
+Another transformation was done in relation to the second research question. Since this question aimed to predict one's lifestyle category based on mental health and happiness metrics, a variable for "lifestyle category" needed to be created. This was done with the help of the variable Life Ladder in the World Happiness dataset. The original variable is called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable). ***Figure \_*** visually depicts the distribution of the original variable life ladder in the dataset.
+
+Figure \_. Histrogram of the distribution of life ladder across countries.
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ggplot(merged_data, aes(x = `Life Ladder`)) +
+    geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", aes(y = ..density..)) +
+    geom_density(color = "navy", size = 1) +
+    labs(
+        x = "Life Ladder",
+        y = "Density", title = "Distribution of Life Ladder with Density overlay"
+    ) +
+    theme_minimal()
+```
+
+To simplify this variable and create an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), the variable life ladder was transformed. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above. ***Figure \_***shows the distribution of this newly created binary variable, Lifestyle Category.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Creating new variable based on the midpoint of Life Ladder
+merged_data$`Lifestyle Category` <- ifelse(merged_data$`Life Ladder` >= 5.5, 1, 0)
+
+# Rename levels with labelss
+merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, levels = c(0, 1), labels = c("Bad QoL", "Good QoL"))
+```
+
+Figure \_. Barplot for distribution of Lifestyle Category.
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ggplot(merged_data, aes(x = `Lifestyle Category`)) +
+    geom_bar(fill = "skyblue", color = "skyblue") +
+    labs(
+        x = "Lifestyle Category",
+        y = "Count", title = "Distribution of Lifestyle Category"
+    ) +
+    theme_minimal()
+```
 
 ***EDA:***
-
-*Basic EDA:* Someone needs to fix the plots from the EDA report and include them here
 
 ***RQ1 Specific EDA and Steps for Model:***
 
@@ -102,6 +139,77 @@ We then evaluate the influential points to see if there are high leverage points
 After finalizing our model, we make test data to predict on our model to validate our model.
 
 ***RQ2 Specific EDA and Steps:***
+
+For the second research question, it was important to gain some insights into the variable descriptive statistics based on the binary variable, i.e., statistics for the Bad QoL category vs. the Good QoL category. *Table \_* provides this information.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+library(knitr)
+# Assuming merged_data is your dataset
+
+# Selected predictor variables
+predictor_vars <- c(
+    "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)",
+    "Anxiety disorders (%)", "Drug use disorders (%)", "Depression (%)",
+    "Alcohol use disorders (%)", "Log GDP per capita", "Social support",
+    "Freedom to make life choices"
+)
+
+# Descriptive statistics for predictor variables by Lifestyle Category
+descriptive_stats <- merged_data %>%
+    group_by(`Lifestyle Category`) %>%
+    summarize(across(all_of(predictor_vars), list(mean = ~ mean(.), sd = ~ sd(.), median = ~ median(.), min = ~ min(.), max = ~ max(.))))
+
+# Convert the descriptive statistics to LaTeX format
+latex_table <- kable(descriptive_stats, "latex")
+```
+
+Table \_. Descriptive Statistics for variables related to research question 2, factored based on the two levels of Lifestyle Category (Bad QoL vs. Good QoL).
+
+```{r, results='asis'}
+cat(latex_table)
+```
+
+The boxplots below help visualize two of these statistics, one mental health disorder and one happiness metric (Figure \_ and Figure \_).
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Eating disorders (%)`, fill = `Lifestyle Category`)) +
+    geom_boxplot() +
+    labs(
+        title = paste("Box Plot of Eating Disorders by Lifestyle Category"),
+        x = "Lifestyle Category",
+        y = "Eating Disorders (%)"
+    ) +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(size = rel(0.6)),
+        axis.title.x = element_text(size = rel(0.5)),
+        axis.title.y = element_text(size = rel(0.4)),
+        axis.text.x = element_text(size = rel(0.5)),
+        axis.text.y = element_text(size = rel(0.5)),
+        legend.title = element_text(size = rel(0.3)),
+        legend.text = element_text(size = rel(0.3))
+    )
+```
+
+```{r, echo=FALSE, fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
+ggplot(merged_data, aes(x = `Lifestyle Category`, y = `Log GDP per capita`, fill = `Lifestyle Category`)) +
+    geom_boxplot() +
+    labs(
+        title = paste("Box Plot of Log GDP per cap by Lifestyle Category"),
+        x = "Lifestyle Category",
+        y = "Log GDP per capita"
+    ) +
+    theme_minimal() +
+    theme(
+        plot.title = element_text(size = rel(0.6)),
+        axis.title.x = element_text(size = rel(0.5)),
+        axis.title.y = element_text(size = rel(0.4)),
+        axis.text.x = element_text(size = rel(0.5)),
+        axis.text.y = element_text(size = rel(0.5)),
+        legend.title = element_text(size = rel(0.3)),
+        legend.text = element_text(size = rel(0.3))
+    )
+```
 
 **Results:**
 
@@ -239,6 +347,136 @@ print(predicted)
 
 ***RQ2 Results:***
 
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+logistic_data <- merged_data[, c("Depression (%)", "Income_Category", "Year", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Positive affect", "Negative affect", "Drug use disorders (%)", "Alcohol use disorders (%)", 'Year')]
+
+logistic_data <- na.omit(logistic_data)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+
+# Explore the data and data types
+str(logistic_data)
+
+# Identify categorical variables and convert them to factors
+categorical_vars <- c("Income_Category", "Lifestyle Category")
+logistic_data[categorical_vars] <- lapply(logistic_data[categorical_vars], factor)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Set the seed for reproducibility
+set.seed(123)
+
+# Create an index for splitting the data
+index <- createDataPartition(logistic_data$`Lifestyle Category`, p = 0.7, list = FALSE)
+
+# Create the training set
+training_set <- logistic_data[index, ]
+
+# Create the testing set
+testing_set <- logistic_data[-index, ]
+```
+
+***Assessing Multicollinearity***
+
+We fit a basic regression model, and then we calculate the Variance Inflation Factor (VIF) values for the predictors in the model to assess multicollinearity. Multicollinearity refers to a situation in which two or more predictor variables in a multiple regression model are highly correlated. If these variables are highly correlated, it can be difficult to disentangle the separate effects of the predictors on the response variable.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Fit a basic model
+model <- glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Social support` + `Freedom to make life choices` + `Positive affect` + `Negative affect` + `Drug use disorders (%)`, data = training_set, family = binomial)
+
+# Calculate VIF
+vif_values <- vif(model)
+
+# Print VIF values
+vif_values
+```
+
+The VIF values for all predictors in the model were found to be low, indicating that there is no multicollinearity. This suggests that each predictor in the model has a unique contribution to the prediction of the response variable and that the effects of the predictors can be estimated separately.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+
+training_set$`Lifestyle Category` <- relevel(training_set$`Lifestyle Category`, ref = "Bad QoL")
+
+train_control <- trainControl(
+    method = "cv",
+    number = 10
+)
+
+
+
+logistic_model <- train(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Social support` + `Freedom to make life choices` + `Drug use disorders (%)` + Year +  `Alcohol use disorders (%)` * `Social support` + `Drug use disorders (%)` * `Social support`, data = training_set, method = "glm", family = binomial, trControl = train_control)
+summary(logistic_model$finalModel)
+```
+
+***Model Results***
+
+To recap the components of the second research question, the response variable chosen was Lifestyle Category with two levels: Good QoL and Bad QoL. The predictor variables chosen for the model to predict Lifestyle Category can be categorized into mental health disorders (Schizophrenia, Depression, Anixety, Alcohol abuse, Drug use, Bipolar Disorder, and Eatiny Disorder) and happiness metrics (log GDP per capita, social support, and freedom to make choices). Furthermore, research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse and/or drug use. For the same, two interaction terms were included in this logistic regression model (i.e., Alcohol use \* Social Support and Drug Use \* Social Support) to be in line with current psychological and addictive behaviors literature.
+
+### Logistic Regression Model Output Summary
+
+| Variable                                  | Estimate  | Std. Error | z value | Pr(\>           |
+|---------------|---------------|---------------|---------------|---------------|
+| Intercept                                 | -52.35236 | 67.33324   | -0.778  | 0.4369          |
+| Depression (%)                            | -1.09615  | 0.26180    | -4.187  | 2.83e-05 \*\*\* |
+| Schizophrenia (%)                         | 10.07029  | 5.55143    | 1.814   | 0.0697 .        |
+| Bipolar disorder (%)                      | 2.54807   | 1.39493    | 1.827   | 0.0678 .        |
+| Eating disorders (%)                      | 10.03718  | 2.10474    | 4.769   | 1.85e-06 \*\*\* |
+| Anxiety disorders (%)                     | -0.15576  | 0.16797    | -0.927  | 0.3538          |
+| Log GDP per capita                        | 0.46577   | 0.24318    | 1.915   | 0.0554 .        |
+| Social support                            | 7.42898   | 6.12312    | 1.213   | 0.2250          |
+| Freedom to make life choices              | 7.00062   | 1.08158    | 6.473   | 9.63e-11 \*\*\* |
+| Drug use disorders (%)                    | -3.03971  | 4.47484    | -0.679  | 0.4970          |
+| Year                                      | 0.01618   | 0.03335    | 0.485   | 0.6276          |
+| Alcohol use disorders (%)                 | 2.24420   | 1.75640    | 1.278   | 0.2013          |
+| Social support: Alcohol use disorders (%) | -2.02845  | 2.00845    | -1.010  | 0.3125          |
+| Social support: Drug use disorders (%)    | 4.78372   | 5.33878    | 0.896   | 0.3702          |
+
+The logistic regression analysis uncovered meaningful connections between predictor variables and the Lifestyle Category. Exponentiating the coefficients provides a lens to interpret the effects on odds. Notably, individuals with higher levels of Depression (%) experience a substantial 33.4% decrease in the odds ratio of belonging to specific lifestyle categories, underscoring the influential role of mental health in shaping lifestyle choices. Moreover, a 0.0001 unit increase in Freedom to make life choices remarkably boost the odds ratio by 10.9%, highlighting the pivotal role of autonomy in determining one's lifestyle. Eating disorders (%) also exhibit a noteworthy positive association with lifestyle choices, where every 0.0001 unit increase in eating disorders percent in a population corresponds to a 22.86% increase in the odds ratio of having a Good Quality of Life, indicating a significant impact of eating habits on lifestyle preferences. Although variables like Schizophrenia (%), Bipolar disorder (%), and Log GDP per capita show potential trends, they did not attain conventional significance levels. These findings contribute valuable insights into the intricate interplay of mental health, freedom, and eating habits in shaping lifestyle choices.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Predict using the logistic regression model on the testing set
+predictions <- predict(logistic_model, newdata = testing_set, type = "raw")
+predictions <- ifelse(predictions == "Good QoL", 1, 0)
+testing_set$`Lifestyle OneHotEnc` <- as.factor(ifelse(testing_set$`Lifestyle Category` == "Good QoL", 1, 0))
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+confusionMatrix(data = as.factor(predictions), reference = as.factor(testing_set$`Lifestyle OneHotEnc`), positive = "1")
+```
+
+The confusion matrix and associated statistics provide an evaluation of the logistic regression model's performance. The model was assessed using a default threshold of 0.5, where the positive class corresponds to "Good Quality of Life" (QoL). The accuracy of the model is 90.07%, indicating the proportion of correctly classified instances among all predictions. The Kappa statistic, which considers agreement by chance, is 0.8004, suggesting substantial agreement beyond chance. Sensitivity (True Positive Rate) is 89.74%, indicating the model's ability to correctly identify individuals with a Good QoL, while specificity (True Negative Rate) is 90.35%, reflecting the model's proficiency in identifying those without a Good QoL. The positive predictive value (PPV) is 88.83%, representing the probability of actually having a Good QoL given a positive prediction, and the negative predictive value (NPV) is 91.15%, representing the probability of not having a Good QoL given a negative prediction. Overall, the balanced accuracy is high at 90.05%, indicating a well-performing model for distinguishing between the two classes.
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Predict probabilities using the logistic regression model on the testing set
+probabilities <- predict(logistic_model, newdata = testing_set, type = "prob")
+
+# Extract probabilities of the positive class
+positive_probabilities <- probabilities[, "Good QoL"]
+
+# Plot the ROC curve using the probabilities and the actual values from the testing set
+roc_obj <- roc(testing_set$`Lifestyle OneHotEnc`, positive_probabilities)
+plot(roc_obj, print.thres = "best", print.auc = TRUE)
+```
+
+The ROC curve analysis further enhances the evaluation of the logistic regression model's discriminatory power. The Area Under the Curve (AUC) is 0.953, indicating a high level of accuracy in distinguishing between the two classes. The optimal threshold identified by the ROC curve analysis is 0.488, representing a balanced point that maximizes both sensitivity and specificity. At this threshold, the model achieves a sensitivity of 90.3%, denoting its ability to correctly identify individuals with a "Good Quality of Life" (QoL), and a specificity of 89.9%, signifying its proficiency in correctly classifying those without a "Good QoL." This balanced threshold contributes to the model's ability to maintain high performance across both classes. The associated confusion matrix at the optimal threshold is as follows:
+
+| Actual/Predicted | Bad QoL | Good QoL |
+|------------------|---------|----------|
+| Bad QoL          | 205     | 23       |
+| Good QoL         | 19      | 176      |
+
+***RQ2 Result Plot***
+
+```{r, echo = FALSE}
+
+ggplot(logistic_data, aes(x = `Log GDP per capita`, y = `Eating disorders (%)`, color = `Lifestyle Category`)) +
+    geom_point(alpha = 0.5) +
+    labs(x = "Log GDP per capita", y = "Eating disorders (%)", color = "Quality of Life") +
+    theme_minimal() +
+    ggtitle("Scatterplot of Eating Disorders (%) vs Log GDP per capita")
+```
+
 **Conclusion:**
 
 Your report will be an 8-10 page self-contained document describing your analysis. It should be written as a professional document that can be understood by someone with limited statistics background (e.g., a client). **You are also required to submit a single QMD file that includes your code for the EDA and analysis.** The report should be organized as follows:
@@ -247,7 +485,7 @@ Your report will be an 8-10 page self-contained document describing your analysi
 
 -   **Introduction**: Provide more background on the data and research questions. Be sure to cite the data and background information appropriately (APA style is fine). Why are these questions worth exploring?
 
--   **Methods**: Describe the process you used to conduct analysis. This includes EDA and any relevant data cleaning information (e.g., did you exclude missing values? If so, how many? Did you collapse categories for any variables?). Then describe the models you fit, and how you planned to assess the model, including influential points, multicollinearity, and diagnostics. The organization of this section may depend on your particular dataset/analysis, but you may want to break it into subsections such as \"Data,\" \"Models,\" and \"Model assessment.\" Note that you **do not** present any results in this section. This section reflects your statistical analysis plan. For example, you will state how you went about EDA but you will not present findings of the EDA.
+-   **Methods**: Describe the process you used to conduct analysis. This includes EDA and any relevant data cleaning information (e.g., did you exclude missing values? If so, how many? Did you collapse categories for any variables?). Then describe the models you fit, and how you planned to assess the model, including influential points, multicollinearity, and diagnostics. The organization of this section may depend on your particular dataset/analysis, but you may want to break it into subsections such as "Data," "Models," and "Model assessment." Note that you **do not** present any results in this section. This section reflects your statistical analysis plan. For example, you will state how you went about EDA but you will not present findings of the EDA.
 
 -   **Results**: Here you should present results for all aspects of the analysis. The structure of this section should mirror the structure of the methods section. For example, you can start with a few key EDA results (e.g., a table of descriptive statistics), then present model results, then address assessment. This is the section where you will primarily refer to tables and figures. You should have at least 1 figure for each research question that illustrates a key result of the analysis (not a diagnostic plot).
 
@@ -255,7 +493,7 @@ Your report will be an 8-10 page self-contained document describing your analysi
 
 A few things to keep in mind:
 
--   You should never refer to actual variable names in the text, tables, or figures. For example, if a variable for height is called \"ht\_\_cm,\" you should always say \"height,\" and the first time you mention it you should state that it is measured in cm. In plots and tables, it should say \"height (cm)\"
+-   You should never refer to actual variable names in the text, tables, or figures. For example, if a variable for height is called "ht\_\_cm," you should always say "height," and the first time you mention it you should state that it is measured in cm. In plots and tables, it should say "height (cm)"
 
 -   The report should be produced in Quarto and rendered to PDF. All tables and figures should use appropriate labels.
 
