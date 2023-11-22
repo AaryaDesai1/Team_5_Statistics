@@ -13,6 +13,7 @@ library(ggplot2)
 library(corrplot)
 library(caret)
 library(car)
+library(countrycode)
 library(readr)
 library(dplyr)
 library(knitr)
@@ -157,17 +158,65 @@ predictor_vars <- c(
 # Descriptive statistics for predictor variables by Lifestyle Category
 descriptive_stats <- merged_data %>%
     group_by(`Lifestyle Category`) %>%
-    summarize(across(all_of(predictor_vars), list(mean = ~ mean(.), sd = ~ sd(.), median = ~ median(.), min = ~ min(.), max = ~ max(.))))
-
+    summarize(across(all_of(predictor_vars), list(mean = ~ mean(., na.rm = TRUE), sd = ~ sd(., na.rm = TRUE), median = ~ median(., na.rm = TRUE), min = ~ min(., na.rm = TRUE), max = ~ max(., na.rm = TRUE))))
 # Convert the descriptive statistics to LaTeX format
 latex_table <- kable(descriptive_stats, "latex")
 ```
 
 Table \_. Descriptive Statistics for variables related to research question 2, factored based on the two levels of Lifestyle Category (Bad QoL vs. Good QoL).
 
-```{r, results='asis'}
-cat(latex_table)
-```
+| Disorder                     | Metric | Bad QoL   | Good QoL  |
+|------------------------------|--------|-----------|-----------|
+| Schizophrenia (%)            | Mean   | 0.1920485 | 0.2360202 |
+|                              | SD     | 0.0318930 | 0.0465964 |
+|                              | Median | 0.1875378 | 0.2123363 |
+|                              | Min    | 0.1482789 | 0.1537823 |
+|                              | Max    | 0.3381741 | 0.3750923 |
+| Bipolar disorder (%)         | Mean   | 0.6693869 | 0.8302067 |
+|                              | SD     | 0.1091610 | 0.1482803 |
+|                              | Median | 0.6407973 | 0.8082976 |
+|                              | Min    | 0.3219060 | 0.5339848 |
+|                              | Max    | 1.074511  | 1.206597  |
+| Eating disorders (%)         | Mean   | 0.1609414 | 0.3841649 |
+|                              | SD     | 0.0717006 | 0.1776320 |
+|                              | Median | 0.1398902 | 0.3463259 |
+|                              | Min    | 0.0788535 | 0.0786903 |
+|                              | Max    | 0.5762338 | 0.9439906 |
+| Anxiety disorders (%)        | Mean   | 3.556924  | 4.544099  |
+|                              | SD     | 0.9064361 | 1.4368912 |
+|                              | Median | 3.366037  | 4.541254  |
+|                              | Min    | 2.023866  | 2.031183  |
+|                              | Max    | 7.174019  | 8.908703  |
+| Drug use disorders (%)       | Mean   | 0.7389735 | 1.0457439 |
+|                              | SD     | 0.4417802 | 0.5588746 |
+|                              | Median | 0.5664380 | 0.8924585 |
+|                              | Min    | 0.4162845 | 0.4446041 |
+|                              | Max    | 2.597734  | 3.452476  |
+| Depression (%)               | Mean   | 3.448963  | 3.473016  |
+|                              | SD     | 0.6480518 | 0.6338600 |
+|                              | Median | 3.515747  | 3.450243  |
+|                              | Min    | 2.203098  | 2.194091  |
+|                              | Max    | 5.694719  | 5.052651  |
+| Alcohol use disorders (%)    | Mean   | 1.577916  | 1.774231  |
+|                              | SD     | 0.967120  | 1.014734  |
+|                              | Median | 1.459101  | 1.663927  |
+|                              | Min    | 0.5711850 | 0.4514172 |
+|                              | Max    | 5.473536  | 5.474668  |
+| Log GDP per capita           | Mean   | 8.616735  | 10.192853 |
+|                              | SD     | 0.9369130 | 0.7375237 |
+|                              | Median | 8.526615  | 10.380481 |
+|                              | Min    | 5.943209  | 6.830418  |
+|                              | Max    | 10.77465  | 11.66379  |
+| Social support               | Mean   | 0.7458312 | 0.8907836 |
+|                              | SD     | 0.1207648 | 0.0604383 |
+|                              | Median | 0.7656038 | 0.9057787 |
+|                              | Min    | 0.2901842 | 0.4788874 |
+|                              | Max    | 0.9695951 | 0.9873435 |
+| Freedom to make life choices | Mean   | 0.6724558 | 0.8062688 |
+|                              | SD     | 0.1403386 | 0.1130960 |
+|                              | Median | 0.6835576 | 0.8294284 |
+|                              | Min    | 0.2575338 | 0.3642059 |
+|                              | Max    | 0.9678693 | 0.9851778 |
 
 The boxplots below help visualize two of these statistics, one mental health disorder and one happiness metric (Figure \_ and Figure \_).
 
@@ -259,7 +308,7 @@ vif(model3)
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 selected_data_cooks1 <- selected_data %>%  filter(!(row.names(selected_data) %in% c(221)))
-model4<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
+model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
 summary(model6)
 plot(model6)
 vif(model6)
@@ -272,7 +321,7 @@ set.seed(10)
 train_control <- trainControl(method = "cv", number = 10)
 
 mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks2, 
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1, 
   method = "lm",
   trControl = train_control
 )
@@ -348,7 +397,27 @@ print(predicted)
 ***RQ2 Results:***
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-logistic_data <- merged_data[, c("Depression (%)", "Income_Category", "Year", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Positive affect", "Negative affect", "Drug use disorders (%)", "Alcohol use disorders (%)", 'Year')]
+
+# Assuming merged_data is your dataset
+
+# Reverting the log transformation
+merged_data$GDP_per_capita <- exp(merged_data$`Log GDP per capita`)
+
+# Define income thresholds
+low_threshold <- 1135
+lower_middle_threshold <- 4465
+upper_middle_threshold <- 13845
+
+# Categorize countries into income groups
+merged_data$Income_Category <- cut(
+    merged_data$GDP_per_capita,
+    breaks = c(-Inf, low_threshold, lower_middle_threshold, upper_middle_threshold, Inf),
+    labels = c("Low Income", "Lower-Middle Income", "Upper-Middle Income", "High Income")
+)
+```
+
+```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+logistic_data <- merged_data[, c("Year","Income_Category", "Depression (%)", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Positive affect", "Negative affect", "Drug use disorders (%)", "Alcohol use disorders (%)")]
 
 logistic_data <- na.omit(logistic_data)
 ```
