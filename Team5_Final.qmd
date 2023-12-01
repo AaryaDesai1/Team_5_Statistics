@@ -17,6 +17,7 @@ library(countrycode)
 library(readr)
 library(dplyr)
 library(knitr)
+library(imputeTS)
 library(ISLR)
 library(SmartEDA)
 library(DataExplorer)
@@ -58,41 +59,149 @@ merged_data$`Lifestyle Category` <- factor(merged_data$`Lifestyle Category`, lev
 
 ### Exploring the Impact of Happiness Metrics, Socio-Economic Factors, and Mental Health Disorders on Depression and Quality of Life Across Continents \| Aarya Desai \| Jeremy Tan \| Cassie Kang \| Osama Ahmed
 
-### **Abstract:**
+## Abstract
 
-In this paper, we analyze two research questions:
+There is widespread research which looks into the factors that influence happiness and those that affect mental health. However, the motivation of the current research project was to gain a holistic view of world happiness and mental health, potentially identifying causality between them. Therefore, after accessing data from the World Happiness Report and a University of Oxford dataset regarding mental health, two research questions were put forth to better understand how happiness metrics may influence mental health and how mental health (and other quality of life metrics) may influence an overarching concept of happiness called Quality of Life (QoL):
 
-RQ1: To what extent do happiness metrics and socio-econmic factors predict depression in continents? RQ2: To what extent do mental health disorders, happiness metrics, and socio-economic factors predict quality of life?
+1.  To what extent do happiness metrics and socioeconmic factors predict depression in continents?
+2.  To what extent do mental health disorders, happiness metrics, and socioeconomic factors predict quality of life?
 
-The data used for this research was obtained from the World Happiness Report for information about happiness metrics and from University of Oxford for information about mental health disorders.
+The results of this study revealed global patterns in depression predictors. Higher log GDP per capita and freedom to make life choices correlate positively with depression, while greater healthy life expectancy and lower perceptions of corruption are associated with lower depression rates. Generosity, positive affect, low social support, and negative affect impact depression. For the second part of this study, the results revealed higher percentages of the population having depression predicted "Bad Quality of Life," while economic prosperity and freedom to make life choices enhance the likelihood of "Good Quality of Life." Contrary to intuition, however, the results also revealed that higher percentages of eating disorder populations in a region predict "Good Quality of Life". Finally, geographically, the Americas and Oceania are linked to better quality of life, with Asia showing a moderate connection. Both models had high predictive power, and therefore, the results are reliable. However, this brings into question the result found regarding eating disorders and Good Quality of Life. This may be explained by the complex relationship between region, QoL, and individual factors/psychology that could lead to eating disorders. Such insights along with strengths, limitations, and future directions of the study are elaborated upon in further in the paper.
 
-For RQ1, our study reveals global patterns in depression predictors. Higher log GDP per capita and freedom to make life choices correlate positively with depression, while greater healthy life expectancy and lower perceptions of corruption are associated with lower depression rates. Generosity, positive affect, low social support, and negative affect impact depression.
+## Introduction
 
-For RQ2, our study reveals higher depression and eating disorder percentages predict "Bad Quality of Life," while economic prosperity and freedom enhance the likelihood of "Good Quality of Life." Geographically, the Americas and Oceania are linked to better quality of life, with Asia showing a moderate connection. Surprisingly, alcohol use disorders increase "Good Quality of Life" and drug use disorders also impact it positively. Mental health factors, like schizophrenia and anxiety disorders, also strongly influence "Good Quality of Life." We can attribute this to the complex intricacy of what constitutes a "Good Quality of Life"
-
-**Introduction:** There is widespread research looking into how happy a country is based on certain socioeconomic and individual-level factors (Ahmadiani, Ferreira, & Kesler 2022). Furthermore, there is also wide-ranging research looking into various mental health disorders and their impact on quality of life (Chigerwe, Holm, Mostret, May, & Bordeaurx 2020). There is a general consensus that the better a countries' socioeconomic status, the higher they score on the happiness index (Ahmadiani, Ferreira, & Kesler 2022). On the other hand, mental health disorders are suggested to be caused by a plethora of factors, such as, genetics, environmental circumstances, financial circumstances, etc. (Evans, Banerjee, Leese, & Huxley 2006). The aim of the current research paper is to gain a better understanding of these two schools of research together, but look at it in a more general context (continent instead of country).
+There is widespread research looking into how happy a country is based on certain socioeconomic and individual-level factors (Ahmadiani et al., 2022). Furthermore, there is also wide-ranging research looking into various mental health disorders and their impact on quality of life (Chigerwe et al., 2020). There is a general consensus that the better a countries' socioeconomic status, the higher they score on the happiness index (Ahmadiani et al., 2022). On the other hand, mental health disorders are suggested to be caused by a plethora of factors, such as, genetics, environmental circumstances, financial circumstances, etc. (Evans et al., 2006). The aim of the current research paper is to gain a better understanding of these two schools of research together, but look at it in a more general context (continent instead of country).
 
 The prevalence of depression is on the rise across the globe (Bell & Blanchflower, 2019). Furthermore, research has indicated that this may have to do with one's socioeconomic status, where individuals with lower socioeconomic statuses are more likely to experience depressive symptoms (Graham & Pinto, 2019). Contrarily, research has also shown that happiness interventions have been shown to reduce depression among individuals (D'raven et a., 2014). Therefore, there is an established correlation between depression and happiness. The current research paper would like to extend these findings and try to establish a predictive inference of depression based on happiness metrics.
 
 On the other hand, there could be a reverse relationship between these factors as well. To better explain this, it is important to understand the concept of Quality of Life (QoL), which refers to the overall well-being of an individual or population (Teoli & Bhardwaj, 2023). This includes having good personal health (mental, physical, and spiritual), strong relationships, good education and social status, healthy work environment, good income, sense of safety/security, freedom to make choices, and healthy physical environment. Based on this definition, the current study could look into how/to what extent mental health disorders and the other QoL metrics mentioned could predict QoL.
 
-**Methods:**
+Based on the motivations of this current paper, two research questions were put forth to further investigate the schools of thought mentioned. For the same, the two datasets found for this study were the World Happiness Report (2022) and University of Oxford Mental Health Disorders Data (2022). The two research questions which will be answered in the following sections are:
 
-***Merging Data:*** As mentioned earlier, two datasets were used for this study: World Happiness Report (2022) and Mental Health Disorders Data (2022). These datasets were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables: `country`, `year`, `life ladder`, `log GDP per capita`, `social support`, `life expectancy at birth`, `freedom`, `perception of corruption`, `generosity`, `positive affect`, `negative affect`, `Alcohol Use Disorders`, `Drug Use Disorders`, `Schizophrenia`, `Bipolar Disorders`, `Anxiety Disorders`, `Eating Disorders`, and `Depression`. We then group our 153 countries into their respecitve continents, as our primary interest lies in discerning variations in our research questions **across different continents**.
+1.  To what extent do happiness metrics and socio-econmic factors predict depression in continents?
+2.  To what extent do mental health disorders, happiness metrics, and socio-economic factors predict quality of life?
 
-***Dataset Information:*** The happiness metrics were a range of factual data collected from census surveys (e.g., Log GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries).
+Both of these research questions will be approached as prediction problems. This will provide more room to understand the predictive potential of key metrics and gaining insight into the extent to which they serve as indicators of depression and QoL. Employing a prediction approach will offer valuable insight into future possibilities of informed interventions and policy decisions to address mental health and well-being on a broader scale.
 
-The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation.
+## Methods
 
-***Data Cleaning and Manipulation:*** The merged dataset had multiple observations per country, each observation representing a different year. Though combining information by country was an option, this would involve averaging observations across years per country and removing information about time. However, in relation to happiness metrics and mental health, it is important to maintain information regarding time as research suggests that environmental changes across the years can have an impact on these factors (Arshad, Stevens, & Hide 1993). Since we are interested in how our research questions varies across continents, we then include a categorical variable that represents the continent the country resides in to collapse the countries into different regions (continents).
+***Merging Data:*** The datasets selected were merged on common countries and years, and then a larger dataset with 1462 observations was created. It contained 18 variables (9 happiness metrics, 7 mental health disorder variables): Country, Year, Life Ladder, log GDP per capita, Social Support, Life expectancy at birth, Freedom to make life choices, Perception of corruption, Generosity, Positive affect, Negative affect, Alcohol use disorders (%), Drug use disorders (%), Schizophrenia (%), Bipolar disorders (%), Anxiety Disorders (%), Eating Disorders (%), and Depression (%).
 
-Another transformation was done in relation to the second research question. Since this question aimed to predict one's lifestyle category based on mental health and happiness metrics, a variable for `lifestyle category` needed to be created. This was done with the help of the variable Life Ladder in the World Happiness dataset. The original variable is called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable).
+***Dataset Information:*** The happiness metrics were a range of factual data collected from census surveys (e.g., Log GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries). The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation.
 
-To simplify this variable and create an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), the variable life ladder was transformed. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above.
+***Data Cleaning and Manipulation:*** First, the 153 countries were grouped into their respective continents, as our primary interest lies in discerning variations in our research questions **across different continents**. Another transformation was done in relation to the second research question to predict one's Quality of Life (QoL) mental health and happiness metrics. This was done with the help of the variable Life Ladder in the World Happiness dataset, originally derived from a metric called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable). To simplify the same, an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), was created. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above.
 
-***EDA:***
+***Variables and Interaction Terms**:* Both research questions were approached as **prediction problems** and we proceeded with examining the question as such. Since we are predicting depression % for those in their respective continents, we use linear regression to build a model and select variables based on *a* *priori* selection. We focus on predictor variables: Log GDP per capita, Social Support, Life expectancy at birth, Freedom to make life choices, Generosity, Perceptions of Corruption, Positive affect, Negative affect, Continent, and Year. Notably, we intentionally avoided incorporating overlapping variables from other distinct research inquiries (namely, life ladder), ensuring a tailored exploration into the predictive relationship between these factors and depression. Finally, there is research which suggests that generosity and social support are highly interconnected, as prosocial and supportive environments/peers are likely to elicit positive and giving behavior from individuals (Chen et al., 2021; d'Exelle & Riedl, 2010). Therefore, an interaction term of Generosity and Social Support was also included in this prediction model.
 
-***RQ1 Specific EDA and Steps for Model:***
+For the second research question, since we are predicting QoL, we use logistic regression to build a model and select variables based on *a* *priori* selection. Our focus is on predictor variables: Schizophrenia (%), Bipolar Disorder (%), Eating disorders (%), Anxiety disorders (%), Drug use disorders (%), Depression (%), Alcohol use disorders (%), Log GDP per capita, Social support, and Freedom to make life choices. It is important to note that research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse. For the same, an interaction terms were included in this logistic regression model (i.e., Alcohol Use and Social Support) to be in line with current psychological and addictive behaviors literature.
+
+## Results
+
+Checklist:
+
+1.  **Linear Regression EDA**:
+
+    -   **Correlation Analysis**: Understanding correlations between the target variable and predictors to identify potentially influential features.
+
+    -   **Distribution of Variables**: Check for normality in the distribution of continuous variables.
+
+    -   **Scatter Plots**: Visualize relationships between predictors and the target variable.
+
+    -   **Outlier Detection**: Identify outliers that could affect model performance.
+
+    -   **Missing Values Analysis**: Address missing values in predictors and target variable if present.
+
+    -   **Multicollinearity Check**: Assess multicollinearity between predictors to avoid redundancy.
+
+    -   **Residual Analysis**: Examine residuals for heteroscedasticity and normality assumptions.
+
+For a predictive logistic regression model:
+
+1.  **Logistic Regression EDA**:
+
+    -   **Class Distribution**: Understand the distribution of the target classes to check for imbalances.
+
+    -   **Feature Distribution by Class**: Examine how predictor variables are distributed for each class.
+
+    -   **Correlation Analysis**: Analyze correlations between predictors and the binary target variable.
+
+    -   **Scatter Plots / Box Plots**: Visualize relationships between predictors and the target classes.
+
+    -   **Outlier Detection**: Identify outliers that might impact the model's performance.
+
+    -   **Missing Values Analysis**: Handle missing values in predictors and target variable if present.
+
+    -   **Collinearity Check**: Assess multicollinearity between predictors.
+
+    -   **Variable Transformation**: Consider transformations for skewed or non-linearly related predictors.
+
+    -   **Feature Engineering**: Create new features or interactions that might enhance predictive power.
+
+### Exploratory Data Analysis
+
+*Dealing with Missing Values:*
+
+Before conducting EDA for either research question, there was an exploratory analysis of solely the NA values in the dataset to understand how to deal with them. Overall, the NA values (*n* = 217, total observations with NA values = 144) seemed to be very randomly distributed across the dataset, and across different variables (namely, Log GDP per capita, Social support, Freedom to make life choices, Generosity, Positive affect, and negative effect). However, perceptions of corruption NA values (*n* = 87) was missing in very specific patterns, where only certain countries were missing the data (namely, China, Jordan, Malta, Qatar, Saudi Arabia, Turkmenistan and United Arab Emirates) barring some randomly distributed NAs across other observations. As noticeable, there is a pattern in missingness which must be addressed. For the same, for those countries which has some observations for any missing variables across the years, the mean values from across the years were imputed into the missing observations (done for all variables). For China and Turkmenistan that did not have *any* data for perceptions of corruption, data was imputed based on research done regarding the politically most similar countries to each of these (). Based on the research, it was found that Taiwan, Vietnam, North Korea, South Korea, and Japan were the most similar to China while Uzbekistan, Kazakhstan, Kyrgyzstan, Azerbaijan, and Tajikistan are the most similar to Turkmenistan. Thus, values were imputed by calculating means across each year for the available countries most similar to China and Turkmenistan respectively.
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+summary(is.na(merged_data))
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+total_na <- sum(is.na(merged_data))
+print(total_na)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Assuming 'your_data' is your dataset
+na_observations <- sum(!complete.cases(merged_data))
+print(na_observations)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Filter data for specific countries (excluding China and Turkmenistan)
+selected_countries <- c("Jordan", "Malta", "Qatar", "Saudi Arabia", "United Arab Emirates")
+
+for (country in selected_countries) {
+  # Check if the country has missing values
+  if (sum(is.na(merged_data[merged_data$Entity == country, "Perceptions_of_corruption"])) > 0) {
+    # Impute missing values with the mean values across years for the specific country
+    merged_data[merged_data$Entity == country, "Perceptions_of_corruption"] <- 
+      ave(merged_data[merged_data$Entity == country, "Perceptions_of_corruption"],
+          merged_data[merged_data$Entity == country, "Year"],
+          FUN = function(x) ifelse(is.na(x), mean(x, na.rm = TRUE), x))
+  }
+}
+
+# Impute missing values for China and Turkmenistan based on politically similar countries
+# Replace 'Perceptions_of_corruption' with other variables as needed
+similar_countries_China <- c("Taiwan", "Vietnam", "North Korea", "South Korea", "Japan")
+similar_countries_Turkmenistan <- c("Uzbekistan", "Kazakhstan", "Kyrgyzstan", "Azerbaijan", "Tajikistan")
+
+# Impute missing values for China
+China_missing <- merged_data[merged_data$Entity == "China" & is.na(merged_data$Perceptions_of_corruption), ]
+China_similar_data <- merged_data[merged_data$Entity %in% similar_countries_China, ]
+if (nrow(China_missing) > 0 && nrow(China_similar_data) > 0) {
+  for (col in colnames(China_missing)) {
+    if (col != "Entity" && col != "Year") {
+      merged_data[merged_data$Entity == "China" & is.na(merged_data[[col]]), col] <- 
+        mean(China_similar_data[[col]], na.rm = TRUE)
+    }
+  }
+}
+
+# Impute missing values for Turkmenistan
+Turkmenistan_missing <- merged_data[merged_data$Entity == "Turkmenistan" & is.na(merged_data$Perceptions_of_corruption), ]
+Turkmenistan_similar_data <- merged_data[merged_data$Entity %in% similar_countries_Turkmenistan, ]
+if (nrow(Turkmenistan_missing) > 0 && nrow(Turkmenistan_similar_data) > 0) {
+  for (col in colnames(Turkmenistan_missing)) {
+    if (col != "Entity" && col != "Year") {
+      merged_data[merged_data$Entity == "Turkmenistan" & is.na(merged_data[[col]]), col] <- 
+        mean(Turkmenistan_similar_data[[col]], na.rm = TRUE)
+    }
+  }
+}
+```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 
@@ -101,6 +210,9 @@ selected_columns <- c("Entity", "Year", "Depression (%)",
                       "Healthy life expectancy at birth", "Freedom to make life choices", "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
 
 selected_data <- merged_data[, selected_columns]
+selected_data <- selected_data %>%
+  rename(`Life Expectancy` = `Healthy life expectancy at birth`,
+         `Freedom` = `Freedom to make life choices`)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
@@ -118,9 +230,31 @@ selected_data$Continent <- as.factor(selected_data$Continent)
 
 ```
 
-We first identify this is a **prediction problem** and proceed with examining the question as such. Since we are predicting depression % for those in their respective continents, we use linear regression to build a model and select variables based on *priori* selection. We focus on predictor variables: `Log GDP per Capita`, `Social Support`, `Healthy life expectancy at birth`, `Freedom to make like choice`, `Genorisity`, `Perceptions of corruption`, `Positive affect`, `Negative affect`, `Continent`, and `Year` for our outcome variable `Depression %`. These variables were selected after careful examination of the dataset as a whole and incorporating predictor variables that reflect both economic and social conditions of people in their continent and year.
+```{r}
+# Pairplot for visualizing relationships between numerical variables
+numeric_columns <- c("Depression (%)", "Log GDP per capita", "Social support", 
+                     "Life Expectancy", "Freedom", 
+                     "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
+numeric_data <- selected_data[, numeric_columns]
 
-After building the initial benchmark model with these variables, we asses the significance of the variables using p-values, check the multicollinearity using `VIF()`, and check RMSE via cross validation to see if our model will be predict well. If we improve the model, we repeat the same steps as previously stated. To improve our model, we first remove variables to see if there is an impact; in the case, `Social Support`. After seeing no improvement, we examine the `Social Support` variable again and break it up into categories where a continent with high social support (above .7) would be considered "High" and those under would be "Low." We then make an interaction term with `Generosity` and `Social support`. We are further supported by this decison from previous research where `Generosity` and `Social Support` are interconnected(D'Exelle & Riedl 2010). After assessing the model again, we see that `Social Support` and the interaction between `Generosity` and `Social support` becomes significant so we keep this current model.
+pairs(numeric_data)
+
+# Correlation matrix heatmap
+correlation_matrix <- cor(numeric_data)
+corrplot(
+  correlation_matrix, 
+  method = "color",  # Choose a method for visualizing correlations 
+  tl.col = "black",  # Color of text labels
+  tl.srt = 45        # Rotation angle of text labels
+)
+
+# Distribution of target variable 'Depression (%)'
+ggplot(selected_data, aes(x = `Depression (%)`)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Depression (%)", x = "Depression (%)", y = "Frequency")
+```
+
+After building the initial benchmark model with these variables, we asses the significance of the variables using p-values, check the multicollinearity using `VIF()`, and check RMSE via cross validation to see if our model will be predict well. If we improve the model, we repeat the same steps as previously stated. To improve our model, we first remove variables to see if there is an impact; in the case, `Social Support`. After seeing no improvement, we examine the `Social Support` variable again and break it up into categories where a continent with high social support (above .7) would be considered "High" and those under would be "Low."
 
 We then evaluate the influential points to see if there are high leverage points that affect the model. After looking at the plots, we remove observatons 221, which had high leverage. After removing these points, we see both `Genorisity` and `Freedom to make life choices` become more significant so we keep them.
 
@@ -128,19 +262,13 @@ After finalizing our model, we make test data to predict on our model to validat
 
 ***RQ2 Specific EDA and Steps:***
 
-We first identify this is a **prediction problem** and proceed with examining the second questions as such. Since we are predicting QoL for those in their respective continents, we use logistic regression to build a model and select variables based on *priori* selection. Our focus is on predictor variables: `Schizophrenia (%)`, `Bipolar disorder (%)`, `Eating disorders (%)`, `Anxiety disorders (%)`, `Drug use disorders (%)`, `Depression (%)`, `Alcohol use disorders (%)`, `Log GDP per capita`, `Social support`, and `Freedom to make life choices` for our outcome variable, `Quality of Life (%)`. These variables were chosen, taking into account factors that capture both mental health indicators and socio-economic conditions, for individuals in their respective continents and years
-
-After building the initial benchmark model with these variables, we asses the significance of the variables using p-values, check the multicollinearity using `VIF()`and check the accuracy of our model via Cross Validation to see whether our model needs to be improved. If we improve the model, we repeat the same steps as previously stated. We take the same approach as the first research question and transform the social support variable (see ***RQ1 Specific EDA and Steps for Model***). We then plot the variables to see good interaction terms, and settle with `Alcohol use disorders (%)` and `Social Support`. To also add to it, research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse. For the same, an interaction terms were included in this logistic regression model (i.e., Alcohol use \* Social Support) to be in line with current psychological and addictive behaviors literature. After assessing the model again, we see `Alcohol use disorders (%)` become more significant . to `*` so we keep our current model with the interaction term.
+After building the initial benchmark model with these variables, we asses the significance of the variables using p-values, check the multicollinearity using `VIF()`and check the accuracy of our model via Cross Validation to see whether our model needs to be improved. If we improve the model, we repeat the same steps as previously stated. We take the same approach as the first research question and transform the social support variable (see ***RQ1 Specific EDA and Steps for Model***). We then plot the variables to see good interaction terms, and settle with `Alcohol use disorders (%)` and `Social Support`. After assessing the model again, we see `Alcohol use disorders (%)` become more significant . to `*` so we keep our current model with the interaction term.
 
 We then evaluate the influential points to see if there are high leverage points that affect our model. After removing observation 381, we see no improvement so we keep our previous model.
 
 We then look at the ROC curve to see the best threshold needed for our model to predict accurately. We then look at the confusion matrix for our final model to asses it with F1, Kappa, and Accuracy.
 
 After finalizing our model, we make test data to predict on our model to validate our model.
-
-**Results:**
-
-***RQ1 Key Figures:***
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 rq1_bar <- plot_bar(selected_data)
@@ -273,7 +401,7 @@ print(predicted)
 
 8.  **Negative affect (0.84):** An increase in negative affect by one unit is linked to an increase of 0.84 percentage points in depression.
 
-9.  **Interaction: Generosity \* Social support category (Low) (1.26):** The interaction effect indicates that the combination of low social support and higher generosity is associated with an increase of 1.26 percentage points in depression. Certainly! Let's interpret the coefficients for the continents:
+9.  **Interaction: Generosity \* Social support category (Low) (1.26):** The interaction effect indicates that the combination of low social support and higher generosity is associated with an increase of 1.26 percentage points in depression.
 
 10. **ContinentAmericas (-0.70):** The coefficient for the Americas continent is -0.70. Being in the Americas is associated with a decrease of 0.70 percentage points in depression.
 
@@ -608,7 +736,11 @@ When analyzing both models, we are confident that both models can accurately pre
 
 Bell, D. N., & Blanchflower, D. G. (2019). The well-being of the overemployed and the underemployed and the rise in depression in the UK. *Journal of Economic Behavior & Organization*, *161*, 180-196.
 
+Chen, E., Lam, P. H., Finegood, E. D., Turiano, N. A., Mroczek, D. K., & Miller, G. E. (2021). The balance of giving versus receiving social support and all-cause mortality in a US national sample. *Proceedings of the National Academy of Sciences*, *118*(24), e2024770118.
+
 Cherry, K. Mse. (2023, March 3). *A social support system is imperative for Health and well-being*. Verywell Mind. https://www.verywellmind.com/social-support-for-psychological-health-4119970#:\~:text=1%20Poor%20social%20support%20has,Alcohol%20use 
+
+d'Exelle, B., & Riedl, A. (2010). Directed generosity and network formation: network dimension matters.
 
 D'raven, L. T. L., Moliver, N., & Thompson, D. (2015). Happiness intervention decreases pain and depression, boosts happiness among primary care patients. *Primary health care research & development*, *16*(2), 114-126.
 
@@ -616,21 +748,23 @@ Eddie, D., Hoffman, L., Vilsaint, C., Abry, A., Bergman, B., Hoeppner, B., \... 
 
 Graham, C., & Pinto, S. (2019). Using Well-Being Metrics to Assess Social Well-Being and Ill-Being: Lessons from Rising Mortality Rates in the United States. *The Economics of Happiness: How the Easterlin Paradox Transformed Our Understanding of Well-Being and Progress*, 319-353.
 
+Hanssen, L., Deindl, C., & Lechler, B. (Year not provided). Determinants of Well-Being and Health in Old Age: The Role of Living Arrangements and Partnership Status. *PLOS ONE, 15*(10), e0241302. <https://doi.org/10.1371/journal.pone.0241302>
+
 Horigian, V. E., Schmidt, R. D., & Feaster, D. J. (2021). Loneliness, mental health, and substance use among US young adults during COVID-19. *Journal of psychoactive drugs*, *53*(1), 1-9.
+
+Jones, J. (2023, February 14). *The most similar countries to China*. OBJECTIVE LISTS. https://objectivelists.com/2022/04/22/which-countries-are-most-similar-to-china/ 
+
+Jones, J. (2023, February 14). *The most similar countries to Turkmenistan*. OBJECTIVE LISTS. https://objectivelists.com/2022/08/09/which-countries-are-most-similar-to-turkmenistan/ 
+
+Ortega, J., & Hergovich, P. (2011). The Strength of Absent Ties: Social Integration via Online Dating. *SSRN*. <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1730092>
+
+Siemsen, E. H., Cappaert, R. A., Gonzalez, J. T., & Wilson, R. R. (2007). The WHOQOL-OLD in the United States: Methodological and Structural Issues. *Quality of Life Research, 16*(1), 1-12. <https://doi.org/10.1007/s11136-006-9002-6>
 
 Teoli D, Bhardwaj A. Quality Of Life. \[Updated 2023 Mar 27\]. In: StatPearls \[Internet\]. Treasure Island (FL): StatPearls Publishing; 2023 Jan-. Available from: https://www.ncbi.nlm.nih.gov/books/NBK536962/#
 
 *The world by income and region*. WDI - The World by Income and Region. (2023). https://datatopics.worldbank.org/world-development-indicators/the-world-by-income-and-region.html 
 
 Xu, X., Geng, F., & Xu, H. (2021). Understanding Loneliness Among Older Adults in Rural China: A Mixed-Methods Study. *Applied Research in Quality of Life*. <https://doi.org/10.1007/s10902-021-00478-y>
-
-Hanssen, L., Deindl, C., & Lechler, B. (Year not provided). Determinants of Well-Being and Health in Old Age: The Role of Living Arrangements and Partnership Status. *PLOS ONE, 15*(10), e0241302. <https://doi.org/10.1371/journal.pone.0241302>
-
-Siemsen, E. H., Cappaert, R. A., Gonzalez, J. T., & Wilson, R. R. (2007). The WHOQOL-OLD in the United States: Methodological and Structural Issues. *Quality of Life Research, 16*(1), 1-12. <https://doi.org/10.1007/s11136-006-9002-6>
-
-Ortega, J., & Hergovich, P. (2011). The Strength of Absent Ties: Social Integration via Online Dating. *SSRN*. <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1730092>
-
-The World by Income and Region. (2023). *WDI - The World by Income and Region*. <https://datatopics.worldbank.org/world-development-indicators/the-world-by-income-and-region.html>
 
 \newpage
 
