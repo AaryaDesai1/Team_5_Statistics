@@ -203,6 +203,8 @@ if (nrow(Turkmenistan_missing) > 0 && nrow(Turkmenistan_similar_data) > 0) {
 }
 ```
 
+*EDA for RQ1*
+
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 
 selected_columns <- c("Entity", "Year", "Depression (%)",
@@ -289,13 +291,17 @@ See Table 3 for final model summary.
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 
-model <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+model <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Life Expectancy` + `Freedom` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
 summary(model)
 vif(model)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+selected_data <- selected_data %>%
+  rename(`Healthy life expectancy at birth` = `Life Expectancy`,
+         `Freedom to make life choices` = `Freedom`)
+
 set.seed(10)
 
 train_control <- trainControl(method = "cv", number = 10)
