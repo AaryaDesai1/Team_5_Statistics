@@ -32,8 +32,8 @@ library(pROC)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-Happiness_Data <- read_xls("data/DataFortable2.1WHR2023.xls")
-Mental_Health_Data <- read_xlsx("data/Mental health Depression disorder Data.xlsx")
+Happiness_Data <- read_xls("DataFortable2.1WHR2023.xls")
+Mental_Health_Data <- read_xlsx("Mental health Depression disorder Data.xlsx")
 unique_values_happiness <- unique(Happiness_Data$`Country name`)
 unique_values_mental <- unique(Mental_Health_Data$Entity)
 common_elements <- intersect(unique_values_mental, unique_values_happiness)
@@ -91,7 +91,7 @@ Both of these research questions will be approached as prediction problems. This
 
 ***Data Cleaning and Manipulation:*** First, the 153 countries were grouped into their respective continents, as our primary interest lies in discerning variations in our research questions **across different continents**. Another transformation was done in relation to the second research question to predict one's Quality of Life (QoL) mental health and happiness metrics. This was done with the help of the variable Life Ladder in the World Happiness dataset, originally derived from a metric called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable). To simplify the same, an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), was created. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above.
 
-***Variables and Interaction Terms**:* Both research questions were approached as **prediction problems** and we proceeded with examining the question as such. Since we are predicting depression % for those in their respective continents, we use linear regression to build a model and select variables based on *a* *priori* selection. We focus on predictor variables: Log GDP per capita, Social Support, Life expectancy at birth, Freedom to make life choices, Generosity, Perceptions of Corruption, Positive affect, Negative affect, Continent, and Year. Notably, we intentionally avoided incorporating overlapping variables from other distinct research inquiries (namely, life ladder), ensuring a tailored exploration into the predictive relationship between these factors and depression. Finally, there is research which suggests that generosity and social support are highly interconnected, as prosocial and supportive environments/peers are likely to elicit positive and giving behavior from individuals (Chen et al., 2021; d'Exelle & Riedl, 2010). Therefore, an interaction term of Generosity and Social Support was also included in this prediction model.
+***Variables and Interaction Terms**:* Both research questions were approached as **prediction problems** and we proceeded with examining the question as such. Since we are predicting depression % for those in their respective continents, we use linear regression to build a model and select variables based on *a* *priori* selection. We focus on predictor variables: Log GDP per capita, Social Support, Life expectancy at birth, Freedom to make life choices, Generosity, Perceptions of Corruption, Positive affect, Negative affect, Continent, and Year. Notably, we intentionally avoided incorporating overlapping variables from other distinct research inquiries (namely, life ladder), ensuring a tailored exploration into the predictive relationship between these factors and depression. Finally, there is research which suggests that generosity and social support are highly interconnected, as prosocial and supportive environments/peers are likely to elicit positive and giving behavior from individuals. Finally, researches have suggest that generosity and social support are highly interconnected, as pro-social and supportive environments/peers are likely to elicit positive and giving behavior from individuals(Chen et al., 2021; d'Exelle & Riedl, 2010). Therefore, an interaction term of Generosity and Social Support was also included in this prediction model.
 
 For the second research question, since we are predicting QoL, we use logistic regression to build a model and select variables based on *a* *priori* selection. Our focus is on predictor variables: Schizophrenia (%), Bipolar Disorder (%), Eating disorders (%), Anxiety disorders (%), Drug use disorders (%), Depression (%), Alcohol use disorders (%), Log GDP per capita, Social support, and Freedom to make life choices. It is important to note that research has suggested that a lack of social support is most likely to increase the risk of substance abuse (Cherry, 2023; Eddie et al., 2019; Horigian et al., 2020). Therefore, it is likely that there is an interaction between the predictors social support and alcohol abuse. For the same, an interaction terms were included in this logistic regression model (i.e., Alcohol Use and Social Support) to be in line with current psychological and addictive behaviors literature.
 
@@ -203,8 +203,6 @@ if (nrow(Turkmenistan_missing) > 0 && nrow(Turkmenistan_similar_data) > 0) {
 }
 ```
 
-*EDA for RQ1*
-
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 
 selected_columns <- c("Entity", "Year", "Depression (%)",
@@ -258,7 +256,7 @@ ggplot(selected_data, aes(x = `Depression (%)`)) +
 
 After building the initial benchmark model with these variables, we asses the significance of the variables using p-values, check the multicollinearity using `VIF()`, and check RMSE via cross validation to see if our model will be predict well. If we improve the model, we repeat the same steps as previously stated. To improve our model, we first remove variables to see if there is an impact; in the case, `Social Support`. After seeing no improvement, we examine the `Social Support` variable again and break it up into categories where a continent with high social support (above .7) would be considered "High" and those under would be "Low."
 
-We then evaluate the influential points to see if there are high leverage points that affect the model. After looking at the plots, we remove observatons 221, which had high leverage. After removing these points, we see both `Genorisity` and `Freedom to make life choices` become more significant so we keep them.
+We then evaluate the influential points to see if there are high leverage points that affect the model. After looking at the plots, we remove observations 221, which had high leverage. After removing these points, we see both `Genorisity` and `Freedom to make life choices` become more significant so we keep them.
 
 After finalizing our model, we make test data to predict on our model to validate our model.
 
@@ -298,16 +296,12 @@ vif(model)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-selected_data <- selected_data %>%
-  rename(`Healthy life expectancy at birth` = `Life Expectancy`,
-         `Freedom to make life choices` = `Freedom`)
-
 set.seed(10)
 
 train_control <- trainControl(method = "cv", number = 10)
 
 mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Life Expectancy` + `Freedom` +  Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
   method = "lm",
   trControl = train_control
 )
@@ -315,7 +309,7 @@ print(mod_cv)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-model2 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+model2 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Life Expectancy` + `Freedom` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
 summary(model2)
 vif(model2)
@@ -327,7 +321,7 @@ selected_data$`Social support category`<- as.factor(selected_data$`Social suppor
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Life Expectancy` + `Freedom`+ Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
 summary(model3)
 vif(model3)
@@ -335,7 +329,7 @@ vif(model3)
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
 selected_data_cooks1 <- selected_data %>%  filter(!(row.names(selected_data) %in% c(221)))
-model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
+model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Life Expectancy` + `Freedom` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
 summary(model6)
 plot(model6)
 vif(model6)
@@ -348,7 +342,7 @@ set.seed(10)
 train_control <- trainControl(method = "cv", number = 10)
 
 mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1, 
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Life Expectancy` + `Freedom` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1, 
   method = "lm",
   trControl = train_control
 )
@@ -360,8 +354,8 @@ test_data <- data.frame(
   Continent = c("Americas", "Asia"),
   Year = factor(c(2015, 2014)),  
   `Log GDP per capita` = c(9.5, 10.0), 
-  `Healthy life expectancy at birth` = c(70, 75),  
-  `Freedom to make life choices` = c(0.7, 0.8),  
+  `Life Expectancy` = c(70, 75),  
+  `Freedom` = c(0.7, 0.8),  
   Generosity = c(0.1, 0.2), 
   `Perceptions of corruption` = c(0.05, 0.02),
   `Positive affect` = c(0.8, 0.7),  
@@ -372,8 +366,8 @@ test_data <- data.frame(
     `Continent` = Continent,
     `Year` = Year,
     `Log GDP per capita` = Log.GDP.per.capita,
-    `Healthy life expectancy at birth` = Healthy.life.expectancy.at.birth,
-    `Freedom to make life choices` = Freedom.to.make.life.choices,
+    `Life Expectancy` = Life.Expectancy,
+    `Freedom` = Freedom,
     `Perceptions of corruption` = Perceptions.of.corruption,
     `Positive affect` = `Positive.affect`, 
     `Social support category` = `Social.support.category`,
@@ -458,7 +452,7 @@ ggplot(coef_data, aes(x = Variable, y = Coefficient, fill = Variable)) +
   labs(x = "Variable", y = "Coefficient") +
   ggtitle("Fig 2. Impact of Variables on Depression") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 13))
 ```
 
 ***RQ2 Key Figures:***
