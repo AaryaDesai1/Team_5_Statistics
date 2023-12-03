@@ -31,6 +31,7 @@ library(sjlabelled)
 library(skimr)
 library(readxl)
 library(pROC)
+library(vip)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
@@ -93,21 +94,23 @@ Both of these research questions will be approached as prediction problems. This
 
 ***Dataset Information:*** The happiness metrics were a range of factual data collected from census surveys (e.g., Log GDP per capita, life expectancy at birth) and self-reported variables collected from the population of each country in a given year (e.g., life ladder, freedom to make choices, social support, etc). The final variables of this dataset were also self-reported measures of positive and negative emotions which were culminated and calculated into the variables positive affect and negative affect (required to analyze happiness reports for countries). The mental disorders dataset's variables indicated the percentage of the population that had the stated mental disorder in the given country and year per observation.
 
-***Data Cleaning and Manipulation:*** First, the 153 countries were grouped into their respective continents, as our primary interest lies in discerning variations in our research questions **across different continents**. Another transformation was done in relation to the second research question to predict one's Quality of Life (QoL) mental health and happiness metrics. This was done with the help of the variable Life Ladder in the World Happiness dataset, originally derived from a metric called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable). To simplify the same, an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), was created. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above.
+***Data Cleaning and Manipulation:*** First, the 153 countries were grouped into their respective continents, as our primary interest lies in discerning variations in our research questions across different continents. Another transformation was done in relation to the second research question to predict one's Quality of Life (QoL) mental health and happiness metrics. This was done with the help of the variable Life Ladder in the World Happiness dataset, originally derived from a metric called the Cantril ladder, which asks respondents to rate their current lives on a scale of 0 (worst possible life) to 10 (best possible life). In the World Happiness dataset, this variable was an average of all the results collected from citizens of the specific country in the given year (i.e., a float, continuous variable). To simplify the same, an overarching binary variable indicating "Lifestyle Category", i.e., Good Quality of Life (Good QoL) vs. Bad Quality of Life (Bad QoL), was created. This was done using the midpoint of the Life Ladder scale (i.e., 5.5) and then recoding a Lifestyle Category variable to Bad QoL if the observation was below the midpoint and Good QoL if it was above.
 
 ***Dealing with Missing Data***: Before conducting EDA for either research question, there was an exploratory analysis of solely the NA values in the dataset to understand how to deal with them. Overall, the NA values (*n* = 217, total observations with NA values = 144) seemed to be very randomly distributed across the dataset, and across different variables (namely, Log GDP per capita, Social support, Freedom to make life choices, Generosity, Positive affect, and negative effect). However, perceptions of corruption NA values (*n* = 87) was missing in very specific patterns, where only certain countries were missing the data (namely, China, Jordan, Malta, Qatar, Saudi Arabia, Turkmenistan and United Arab Emirates) barring some randomly distributed NAs across other observations. As noticeable, there is a pattern in missingness which must be addressed. For the same, for those countries which has some observations for any missing variables across the years, the mean values from across the years were imputed into the missing observations (done for all variables). For China and Turkmenistan that did not have *any* data for perceptions of corruption, data was imputed based on research done regarding the politically most similar countries to each of these (Jones, 2023). Based on the research, it was found that Taiwan, Vietnam, North Korea, South Korea, and Japan were the most similar to China while Uzbekistan, Kazakhstan, Kyrgyzstan, Azerbaijan, and Tajikistan are the most similar to Turkmenistan. Thus, values were imputed by calculating means across each year for the available countries most similar to China and Turkmenistan respectively.
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+#Checking for NAs
 summary(is.na(merged_data))
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+#Printing total number of NAs
 total_na <- sum(is.na(merged_data))
 print(total_na)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-# Assuming 'your_data' is your dataset
+# Printing the number of OBSERVATIONS that have NA values
 na_observations <- sum(!complete.cases(merged_data))
 print(na_observations)
 ```
@@ -169,7 +172,7 @@ For RQ2, our focus is on predictor variables: Schizophrenia (%), Bipolar Disorde
 
 ***Model Fit Checks***: After building the initial benchmark models, the significance of the variables was assessed using p-values, multicollinearity was checked using VIF scores, and the accuracy was checked via cross validation to see if our model predicts well.
 
-***Influential Points***: All influential points were assessed used Cook's distance. For RQ1, the presence of high leverage points that could affect the model was evaluated. After looking at the plots, we remove observation 221, which had high leverage. These were removed from further analysis as their removal significantly improved the model. High leverage points were also evaluated for RQ2, and 381 were found. However, no improvement was observed in the model after their removal, thus they were maintained.
+***Influential Points***: To improve model accuracy and reliability, high leverage points were systematically identified and removed. Leveraged values and studentized residuals were calculated, where points with leverage values greater than 2 \* (number of coefficients) / (number of observations) were identified as high leverage points. After identifying the high leverage points, they were removed from the dataset, and the model was refitted.
 
 ***Model Accuracy Checks***: FOR RQ1, accuracy was measured using RMSE. For RQ2, the ROC curve was checked to see the best threshold needed for our model to predict accurately. Then, a confusion matrix was made for the final model to assess it with F1, Kappa, sensitivity, specificity, and accuracy.
 
@@ -179,25 +182,20 @@ For RQ2, our focus is on predictor variables: Schizophrenia (%), Bipolar Disorde
 
 ***Exploratory Data Analysis (EDA)***
 
-Table 1 provides an overview of the continuous variables used in this regression. As a part of the EDA, a correlation analysis matrix, a matrix scatterplot to assess the relationship between the outcome variable and all the predictor variables and a histogram to further understand the distribution of the outcome variable were plotted (see Appendix A). From this analysis, it was
+Table 1 provides an overview of the continuous variables used in this regression. As a part of the EDA, a correlation analysis matrix, a matrix scatterplot to assess the relationship between the outcome variable and all the predictor variables and a histogram to further understand the distribution of the outcome variable were plotted (see Appendix A). **From this analysis, it was**
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Making a dataset for the linear regression with the necessary variables. 
 
 selected_columns <- c("Entity", "Year", "Depression (%)",
                       "Log GDP per capita", "Social support", 
                       "Healthy life expectancy at birth", "Freedom to make life choices", "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
 
 selected_data <- merged_data[, selected_columns]
-selected_data <- selected_data %>%
-  rename(`Life Expectancy` = `Healthy life expectancy at birth`,
-         `Freedom` = `Freedom to make life choices`)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-selected_data <- na.omit(selected_data)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Creating a continents variable. 
 selected_data$Continent <- countrycode(
   sourcevar = selected_data$Entity,
   origin = "country.name",
@@ -208,171 +206,88 @@ selected_data$Continent <- as.factor(selected_data$Continent)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Creating a descriptive statistics table for RQ1
 describe(selected_data)
 ```
 
 *Table 1*. Descriptive Statistics for RQ1.
 
-\| Variable \| Mean \| SD \| Median \| Min \| Max \| Skew \| Kurtosis \|
+\| Variable \| Mean \| SD \| Median \| Min \| Max \|
 
-\|\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\|\-\-\-\-\-\--\|\-\-\-\-\-\--\|\-\-\-\-\-\-\--\|\-\-\-\-\--\|\-\-\-\-\--\|\-\-\-\-\--\|\-\-\-\-\-\-\-\-\--\|
+\|\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--\|\-\-\-\-\-\--\|\-\-\-\-\-\--\|\-\-\-\-\-\-\--\|\-\-\-\-\--\|\-\-\-\-\--\|
 
-\| Depression (%) \| 3.46 \| 0.65 \| 3.47 \| 2.19 \| 5.68 \| 0.36 \| 0.17 \|
+\| Depression (%) \| 3.46 \| 0.65 \| 3.47 \| 2.19 \| 5.68 \|
 
-\| Log GDP per capita \| 9.29 \| 1.16 \| 9.42 \| 5.94 \| 11.66\| -0.26\| -0.91 \|
+\| Log GDP per capita \| 9.29 \| 1.16 \| 9.42 \| 5.94 \| 11.66\|
 
-\| Social support \| 0.81 \| 0.12 \| 0.83 \| 0.29 \| 0.99 \| -1.14\| 1.20 \|
+\| Social support \| 0.81 \| 0.12 \| 0.83 \| 0.29 \| 0.99 \|
 
-\| Healthy life expectancy at birth\| 62.54 \| 7.39 \| 64.44 \| 6.72 \| 73.85\| -1.19\| 3.23 \|
+\| Healthy life expectancy at birth\| 62.54 \| 7.39 \| 64.44 \| 6.72 \| 73.85\|
 
-\| Freedom to make life choices \| 0.73 \| 0.15 \| 0.75 \| 0.26 \| 0.99 \| -0.53\| -0.30 \|
+\| Freedom to make life choices \| 0.73 \| 0.15 \| 0.75 \| 0.26 \| 0.99 \|
 
-\| Generosity \| 0.00 \| 0.17 \| -0.02 \| -0.32\| 0.70 \| 0.77 \| 0.81 \|
+\| Generosity \| 0.00 \| 0.17 \| -0.02 \| -0.32\| 0.70 \|
 
-\| Perceptions of corruption \| 0.75 \| 0.19 \| 0.81 \| 0.04 \| 0.98 \| -1.55\| 2.03 \|
+\| Perceptions of corruption \| 0.75 \| 0.19 \| 0.81 \| 0.04 \| 0.98 \|
 
-\| Positive affect \| 0.66 \| 0.11 \| 0.67 \| 0.35 \| 0.88 \| -0.28\| -0.83 \|
+\| Positive affect \| 0.66 \| 0.11 \| 0.67 \| 0.35 \| 0.88 \|
 
-\| Negative affect \| 0.26 \| 0.08 \| 0.25 \| 0.10 \| 0.70 \| 0.99 \| 1.83 \|
-
-```{r}
-# Pairplot for visualizing relationships between numerical variables
-numeric_columns <- c("Depression (%)", "Log GDP per capita", "Social support", 
-                     "Life Expectancy", "Freedom", 
-                     "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
-numeric_data <- selected_data[, numeric_columns]
-
-pairs(numeric_data)
-
-# Correlation matrix heatmap
-correlation_matrix <- cor(numeric_data)
-corrplot(
-  correlation_matrix, 
-  method = "color",  # Choose a method for visualizing correlations 
-  tl.col = "black",  # Color of text labels
-  tl.srt = 45        # Rotation angle of text labels
-)
-
-# Distribution of target variable 'Depression (%)'
-ggplot(selected_data, aes(x = `Depression (%)`)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
-  labs(title = "Distribution of Depression (%)", x = "Depression (%)", y = "Frequency")
-```
+\| Negative affect \| 0.26 \| 0.08 \| 0.25 \| 0.10 \| 0.70 \|
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-rq1_bar <- plot_bar(selected_data)
-rq1_hist <- plot_histogram(selected_data)
-```
-
-```{r, echo=FALSE, fig.height=10, fig.width=20, message=FALSE, warning=FALSE}
-combined_plots <- grid.arrange(
-   grobs = c(rq1_bar, rq1_hist),
-  ncol = length(rq1_hist) + length(rq1_bar),
-  top="Fig 1. Overview of RQ1 selected Variables"
-)
-```
-
-***RQ1 Results:***
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-
-model <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Life Expectancy` + `Freedom` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
-
-summary(model)
-vif(model)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-selected_data <- selected_data %>%
-  rename(`Healthy life expectancy at birth` = `Life Expectancy`,
-         `Freedom to make life choices` = `Freedom`)
-
-set.seed(10)
-
-train_control <- trainControl(method = "cv", number = 10)
-
-mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Social support` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data, 
-  method = "lm",
-  trControl = train_control
-)
-print(mod_cv)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-model2 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita` + `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
-
-summary(model2)
-vif(model2)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-selected_data$`Social support category` <- ifelse(selected_data$`Social support` > 0.7, "High", "Low")
-selected_data$`Social support category`<- as.factor(selected_data$`Social support category`)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
+# Creating the linear regression model with all variables
+model3 <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + `Generosity` + `Social support` + `Generosity`*`Social support` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = selected_data)
 
 summary(model3)
 vif(model3)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-selected_data_cooks1 <- selected_data %>%  filter(!(row.names(selected_data) %in% c(221)))
-model6<- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1)
-summary(model6)
-plot(model6)
-vif(model6)
+# Calculating leverage points
+leverage_values <- hatvalues(model3)
+#calculate studentized residuals
+studentized_residuals <- rstudent(model3)
+#identify high leverage points
+high_leverage_points <- which(leverage_values > 2 * length(coef(model3)) / nrow(selected_data))
+cleaned_selected_data <- selected_data[-high_leverage_points]
+length(high_leverage_points)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+# Creating the linear regression model with all variables
+model_linear_cleaned <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity + `Social support` + Generosity*`Social support` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data = cleaned_selected_data)
+
+summary(model_linear_cleaned)
+vif(model_linear_cleaned)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+model_linear_cleaned_postvif <- lm(`Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + `Perceptions of corruption` + `Positive affect` + `Negative affect` + `Social support`, data = cleaned_selected_data)
+
+summary(model_linear_cleaned_postvif)
+vif(model_linear_cleaned_postvif)
+```
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
+
+# Remove rows with missing values
+cleaned_selected_data <- na.omit(cleaned_selected_data)
 
 set.seed(10)
 
 train_control <- trainControl(method = "cv", number = 10)
 
-mod_cv <- train(
-  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + Generosity*`Social support category` +`Perceptions of corruption` + `Positive affect` + `Negative affect`, data=selected_data_cooks1, 
+linear_mod_cv <- train(
+  `Depression (%)` ~ Continent + Year + `Log GDP per capita`+ `Healthy life expectancy at birth` + `Freedom to make life choices` + `Perceptions of corruption` + `Positive affect` + `Negative affect` + `Social support`, data = cleaned_selected_data, 
   method = "lm",
   trControl = train_control
 )
-print(mod_cv)
+print(linear_mod_cv)
 ```
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-test_data <- data.frame(
-  Continent = c("Americas", "Asia"),
-  Year = factor(c(2015, 2014)),  
-  `Log GDP per capita` = c(9.5, 10.0), 
-  `Healthy life expectancy at birth` = c(70, 75),  
-  `Freedom to make life choices` = c(0.7, 0.8),  
-  Generosity = c(0.1, 0.2), 
-  `Perceptions of corruption` = c(0.05, 0.02),
-  `Positive affect` = c(0.8, 0.7),  
-  `Social support category` = c("High", "Low"), 
-  `Negative affect` = c(0.2, 0.15) 
-) %>%
-  rename(
-    `Continent` = Continent,
-    `Year` = Year,
-    `Log GDP per capita` = Log.GDP.per.capita,
-    `Healthy life expectancy at birth` = Healthy.life.expectancy.at.birth,
-    `Freedom to make life choices` = Freedom.to.make.life.choices,
-    `Perceptions of corruption` = Perceptions.of.corruption,
-    `Positive affect` = `Positive.affect`, 
-    `Social support category` = `Social.support.category`,
-    `Negative affect` = `Negative.affect` 
-  )
+***Initial Model Assessment:***
 
-test_data$Year <- as.factor(test_data$Year)
-test_data$Continent <- as.factor(test_data$Continent)
-
-# Predictions using the model
-predicted <- predict(model6, newdata = test_data)
-
-print(predicted)
-```
+Checking for high leverage points revealed 47 observations as being influential. These were removed from further analysis and model was refit without them. After refitting the model, to mitigate high multicollinearity issues, where elevated VIF values (\>10) were observed, certain variables were excluded to ensure stable standard errors and improve model interpretability. Specifically, Generosity (74.038) and the interaction term Generosity and Social Support (74.609) were removed to streamline the model.
 
 ***Regression Findings:***
 
@@ -390,62 +305,25 @@ Regarding model fit and diagnostics, the Residual Standard Error was 0.5709, and
 
 In conclusion, the study highlighted the multifaceted nature of factors influencing depression rates, including economic, social, health, and emotional aspects. The results emphasize the need for holistic mental health policies and interventions that integrate these diverse factors. The study also pointed out geographical variations in depression rates, with lower rates observed in the Americas, Asia, and Europe compared to Oceania.
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-# Extracting results and make a presentable dataframe
-results <- mod_cv$results
-rmse <- results$RMSE[which.min(results$RMSE)]  
-rsq <- results$Rsquared[which.max(results$Rsquared)]
+```{r}
+# Compute variable importance
+var_imp <- vip(model_linear_cleaned_postvif)
 
-results_present <- data.frame(
-  Metric = c("RMSE", "R^2", "Adj. R^2"),
-  Value = c(rmse, rsq,  0.235)
-)
-kable(head(results_present), format = "markdown", caption = "RQ1 Model Key Metrics")
+# Convert tibble to dataframe
+var_imp_df <- as.data.frame(var_imp)
 
+# Plot variable importance using ggplot
+ggplot(var_imp_df, aes(x = Importance, y = reorder(Variable, Importance))) +
+  geom_point() +
+  geom_errorbarh(aes(xmin = Importance - Std_Error, xmax = Importance + Std_Error), height = 0.2) +
+  labs(x = "Importance", y = "Variable") +
+  theme_minimal()
 ```
 
-***RQ1 Plot:***
-
-```{r, echo=FALSE, fig.height=10, fig.width=20, message=FALSE, warning=FALSE}
-# Create a data frame with coefficients and variables
-coef_data <- data.frame(
-  Variable = c("Log GDP per capita", "Healthy life expectancy", "Freedom to make life choices",
-               "Perceptions of corruption", "Generosity", "Positive affect", "Social support (Low)",
-               "Negative affect", "Interaction: Generosity * Social support (Low)"),
-  Coefficient = c(0.25, -0.02, 0.35, -0.63, 0.25, -0.58, 0.24, 0.84, 1.26)
-)
-
-# Create the bar plot
-ggplot(coef_data, aes(x = Variable, y = Coefficient, fill = Variable)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Variable", y = "Coefficient") +
-  ggtitle("Fig 2. Impact of Variables on Depression") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
-***RQ2 Key Figures:***
+### Research Question 2 (RQ2): Logistic Regression
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-# Reverting the log transformation
-# merged_data$GDP_per_capita <- exp(merged_data$`Log GDP per capita`)
-
-# Define income thresholds
-# low_threshold <- 1135
-# lower_middle_threshold <- 4465
-# upper_middle_threshold <- 13845
-
-# Categorize countries into income groups
-# merged_data$Income_Category <- cut(
-#    merged_data$GDP_per_capita,
-#    breaks = c(-Inf, low_threshold, lower_middle_threshold, upper_middle_threshold, Inf),
-#    labels = c("Low Income", "Lower-Middle Income", "Upper-Middle Income", "High Income")
-# )
-
-
-```
-
-```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
+# Creating dataset for the logisti regression with only necessary variables
 logistic_data <- merged_data[, c("Year", "Entity", "Depression (%)", "Lifestyle Category", "Schizophrenia (%)", "Bipolar disorder (%)", "Eating disorders (%)", "Anxiety disorders (%)", "Log GDP per capita", "Social support", "Freedom to make life choices", "Drug use disorders (%)", "Alcohol use disorders (%)")]
 
 logistic_data$Continent <- countrycode(
@@ -455,90 +333,73 @@ logistic_data$Continent <- countrycode(
 )
 logistic_data$Year <- as.factor(logistic_data$Year)
 logistic_data$Continent <- as.factor(logistic_data$Continent)
-
 logistic_data <- na.omit(logistic_data)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-
 # Explore the data and data types
 str(logistic_data)
-
 categorical_vars <- c("Lifestyle Category")
 logistic_data[categorical_vars] <- lapply(logistic_data[categorical_vars], factor)
 ```
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-rq2_bar <- plot_bar(logistic_data)
-rq2_hist <- plot_histogram(logistic_data)
-```
-
-```{r, echo=FALSE, fig.height=10, fig.width=20, message=FALSE, warning=FALSE}
-combined_plots <- grid.arrange(
-   grobs = c(rq2_bar, rq2_hist),
-  ncol = length(rq2_hist) + length(rq2_bar),
-  top="Fig 3. Overview of RQ2 selected Variables"
-)
-```
-
-***RQ2 Results:***
-
-See Table 4 for final model summary.
-
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-logistic_data$`Social support category` <- ifelse(logistic_data$`Social support` > 0.7, "High", "Low")
-logistic_data$`Social support category`<- as.factor(logistic_data$`Social support category`)
+logistic_model <- glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` +  `Alcohol use disorders (%)` + `Social support` + `Alcohol use disorders (%)`* `Social support` + `Drug use disorders (%)` + Continent + Year, data = logistic_data, family = binomial)
+summary(logistic_model)
+vif(logistic_model)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-lmodel2 <- glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` +  `Alcohol use disorders (%)`* `Social support category` + `Drug use disorders (%)` + Continent + Year, data = logistic_data, family = binomial)
-summary(lmodel2)
-vif(lmodel2)
+# Calculating leverage points
+leverage_values_logit <- hatvalues(logistic_model)
+#calculate studentized residuals
+studentized_residuals_logit <- rstudent(logistic_model)
+#identify high leverage points
+high_leverage_points_logit <- which(leverage_values_logit > 2 * length(coef(logistic_model)) / nrow(logistic_data))
+cleaned_selected_data_logit <- logistic_data[-high_leverage_points_logit]
+length(high_leverage_points_logit)
+```
+
+```{r}
+logistic_model_cleaned <- glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` +  `Alcohol use disorders (%)` + `Social support` + `Alcohol use disorders (%)`* `Social support` + `Drug use disorders (%)` + Continent + Year, data = cleaned_selected_data_logit, family = binomial)
+summary(logistic_model_cleaned)
+vif(logistic_model_cleaned)
+```
+
+```{r}
+logistic_model_cleaned_postvif <- glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` + `Social support` + `Drug use disorders (%)` + Continent + Year, data = cleaned_selected_data_logit, family = binomial)
+summary(logistic_model_cleaned_postvif)
+vif(logistic_model_cleaned_postvif)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
-
 set.seed(10)
-ctrlspecs <- trainControl(method="cv", 
-                          number=10, 
-                          savePredictions="all",
-                          classProbs=TRUE)
+ctrlspecs <- trainControl(method = "cv", 
+                          number = 10, 
+                          savePredictions = "all",
+                          classProbs = TRUE)
 
-lmodel_cv2 <- train(make.names(`Lifestyle Category`) ~  `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` +  `Alcohol use disorders (%)`* `Social support category` + `Drug use disorders (%)` + Continent + Year, data=logistic_data,  method="glm", family=binomial, trControl=ctrlspecs)
+# Assuming you want to predict 'Lifestyle Category'
+lmodel_cv2 <- train(make.names(`Lifestyle Category`) ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` + `Social support` + `Drug use disorders (%)` + Continent + Year, 
+                    data = cleaned_selected_data_logit,  
+                    method = "glm", 
+                    family = binomial, 
+                    trControl = ctrlspecs)
 
 print(lmodel_cv2)
 ```
 
 ```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-plot(lmodel2, which=4)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-cooks_new_data <- logistic_data %>%
-  filter(!(row.names(logistic_data) %in% c(381)))
-
-cooks1 <-  glm(`Lifestyle Category` ~ `Depression (%)` + `Schizophrenia (%)` + `Bipolar disorder (%)` + `Eating disorders (%)` + `Anxiety disorders (%)` + `Log GDP per capita` + `Freedom to make life choices` +  `Alcohol use disorders (%)`* `Social support category` + `Drug use disorders (%)` + Continent + Year, data = cooks_new_data, family = binomial)
-summary(cooks1)
-vif(cooks1)
-plot(cooks1, which=4)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-roc1 <- roc(logistic_data$`Lifestyle Category`, fitted(lmodel2), print.thres=0.5, print.auc=TRUE, plot=TRUE, legacy.axes=TRUE)
+roc1 <- roc(cleaned_selected_data_logit$`Lifestyle Category`, fitted(logistic_model_cleaned_postvif), print.thres='best', print.auc=TRUE, plot=TRUE, legacy.axes=TRUE)
 print(roc1)
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-roc2 <- roc(logistic_data$`Lifestyle Category`, fitted(lmodel2), print.thres="best", print.auc=TRUE, plot=TRUE, legacy.axes=TRUE)
-print(roc2)
 ```
 
 ```{r, echo=FALSE, results = "hide", message=FALSE, warning=FALSE}
 # this is where I create the confusion matrix 
-p_labels <- ifelse(fitted(lmodel2) > .524, 
+p_labels <- ifelse(fitted(logistic_model_cleaned_postvif) > .557, 
                    "Good QoL", 
                    "Bad QoL")
-a_labels <- factor(logistic_data$`Lifestyle Category`, 
+a_labels <- factor(cleaned_selected_data_logit$`Lifestyle Category`, 
                    levels = c("Good QoL", 
                    "Bad QoL"))
 
@@ -560,68 +421,15 @@ results_df <- data.frame(
 print(cm)
 ```
 
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-exp(confint(cooks1))
-```
-
-```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE, fig.show='hide'}
-test_data <- data.frame(
-  Continent = c("Americas", "Asia"),
-  Year = factor(c(2015, 2014)),  
-  `Log GDP per capita` = c(3.0, 10.0), 
-  `Healthy life expectancy at birth` = c(70, 75),  
-  `Freedom to make life choices` = c(0.9, 0.8),  
-  `Perceptions of corruption` = c(0.01, 0.02),
-  `Social support category` = c("Low", "High"), 
-  `Depression (%)` = c(2.1, 3.6), 
-  `Schizophrenia (%)` = c(.12, .4), 
-  `Bipolar disorder (%)` = c(.1, .5),  
-  `Eating disorders (%)` = c(.1, .7),  
-  `Anxiety disorders (%)` = c(.11, .12),  
-  `Alcohol use disorders (%)` = c(.1, .3),  
-  `Drug use disorders (%)` = c(.1, 6)  
-) %>%
-  rename(
-    `Continent` = Continent,
-    `Year` = Year,
-    `Log GDP per capita` = Log.GDP.per.capita,
-    `Healthy life expectancy at birth` = Healthy.life.expectancy.at.birth,
-    `Freedom to make life choices` = Freedom.to.make.life.choices,
-    `Perceptions of corruption` = Perceptions.of.corruption,
-    `Social support category` = `Social.support.category`,
-    `Depression (%)` = `Depression....`,
-    `Schizophrenia (%)` = `Schizophrenia....`,
-    `Bipolar disorder (%)` = `Bipolar.disorder....`,
-    `Eating disorders (%)` = `Eating.disorders....`,
-    `Anxiety disorders (%)` = `Anxiety.disorders....`,
-    `Alcohol use disorders (%)` = `Alcohol.use.disorders....`,
-    `Drug use disorders (%)` = `Drug.use.disorders....`
-  )
-
-test_data$Year <- as.factor(test_data$Year)
-test_data$Continent <- as.factor(test_data$Continent)
-
-# Predictions using the model
-predicted <- predict(lmodel2, newdata = test_data, type = "response")
-
-# Print predictions
-# print(predicted)
-# Set a threshold (e.g., 0.5)
-threshold <- 0.524
-
-predicted_class <- ifelse(predicted < threshold, "Bad Qol", "Good Qol")
-
-print(predicted_class)
-
-```
-
 ***Findings:***
 
-An increased in the percentage of depression slightly decreased the log odds of being in the specified category (coefficient = -0.4455, p = 0.07591). Although schizophrenia showed a substantial coefficient (6.0333), its effect was not statistically significant. Notably, eating disorders (coefficient = 5.5366, p = 0.00128) and anxiety disorders (coefficient = -0.3069, p = 0.04164) were found to significantly influence the likelihood, while bipolar disorder did not exhibit a significant impact.
+All findings for the logistic regression were found in the form of log-odds. Therefore, these coefficients were exponentiated and converted to percentage increases in the likelihood of experiencing Good QoL with each unit increase in the predictor variable.
 
-Economic and social factors demonstrated considerable influence, with 'Log GDP per capita' (coefficient = 1.8230) and 'Freedom to make life choices' (coefficient = 6.5775) both showing significant positive effects. Substance use disorders, specifically alcohol (coefficient = 0.3506, p = 0.01331) and drug use (coefficient = 0.7235, p = 0.03078), emerged as impactful predictors. The interaction term between alcohol use disorders and low social support was not statistically significant.
+An increase in the percentage of anxiety slightly decreased the likelihood if having a Good QoL by approximately 26.48%. Notably, contrary to intuition, eating disorders significantly influenced the likelihood of having Good QoL, showing an approximately 251.85% increase in the likelihood. Similarly, alcohol use disorders and drug use disorders, emerged as significant predictors, increasing the likelihood of Good QoL by about 42.98% and 107.18% respectively.
 
-The geographical analysis indicated that being in the Americas significantly increased the log odds (coefficient = 3.0252), while effects in other continents such as Asia, Europe, and Oceania were not significant. Additionally, the coefficients for individual years from 2006 to 2017 did not show any significant temporal trends.
+Economic and social factors demonstrated considerable influence, with 'Log GDP per capita' and 'Freedom to make life choices' showing significant positive effects. A unit increase in Log GDP per capita corresponds to roughly a 63.48% increase in the likelihood of having Good QoL, while an increase in 'Freedom to make life choices' corresponds to approximately a 715.61% increase in the likelihood. Finally, the geographical analysis indicated that being in the Americas significantly increased the likelihood of having Good QoL by roughly 203.92%, while effects in other continents such as Asia, Europe, and Oceania were not significant.
+
+Depression, schizophrenia, and years were not found to significantly predict the Good QoL.
 
 The model provides valuable insights into predicting either "Good Quality of Life (QoL)" or "Bad QoL." Notably, higher percentages of depression and eating disorders are associated with a predicted "Bad QoL," while economic prosperity (measured by log GDP per capita) and the freedom to make life choices contribute to a higher likelihood of "Good QoL." Geographically, being in the Americas or Oceania is linked to a better quality of life, with Asia showing a moderate connection to improved QoL. Surprisingly, alcohol use disorders increase the likelihood of "Good QoL," while drug use disorders also have a substantial impact. Mental health factors, such as schizophrenia and anxiety disorders, strongly influence what is considered a "Good Quality of Life." These findings underscore the complex nature of "Quality of Life," where various factors, including disorders, have a complex relationship with each other.
 
@@ -631,22 +439,14 @@ The logistic regression model demonstrates a high accuracy of 89.88% in distingu
 
 The ROC curve further corroborated these findings, with an AUC of 0.959 signifying a commendable model performance in differentiating outcomes. The point "0.521(0.921, 0.876)" suggests an optimal balance between sensitivity (87.33%)) and specificity (92.06%). Overall, the model demonstrates that the logistic regression model has a high capability for correctly classifying individuals into the correct QoL category.
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(kableExtra)
-
-kable(t(results_df), caption = "RQ2 Key Metrics")  %>%
-  kable_styling(latex_options = "HOLD_position")
-```
-
 ***RQ2 Result Plot***
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(logistic_data, aes(x = `Lifestyle Category`, y = `Depression (%)`, fill = Continent)) +
+ggplot(logistic_model_cleaned_postvif, aes(x = `Lifestyle Category`, y = `Depression (%)`, fill = Continent)) +
   geom_boxplot() +
   labs(x = "Lifestyle Category", y = "Depression (%)", fill = "Contient") +
   ggtitle("Figure 4. Box Plot of Lifestyle Category vs. Depression (%)") +
   coord_flip()
- 
 ```
 
 ## Conclusion
@@ -695,7 +495,55 @@ Xu, X., Geng, F., & Xu, H. (2021). Understanding Loneliness Among Older Adults i
 
 \newpage
 
-## Appendix A: Summary Statistics Tables
+## Appendix A: Exploratory Data Analysis Results 
+
+Research Question 1
+
+```{r}
+# Pairplot for visualizing relationships between numerical variables for RQ1
+numeric_columns <- c("Depression (%)", "Log GDP per capita", "Social support", 
+                     "Healthy life expectancy at birth", "Freedom to make life choices", 
+                     "Generosity", "Perceptions of corruption", "Positive affect", "Negative affect")
+numeric_data <- selected_data[, numeric_columns]
+
+pairs(numeric_data)
+
+# Correlation matrix heatmap
+correlation_matrix <- cor(numeric_data)
+corrplot(
+  correlation_matrix, 
+  method = "color",  # Choose a method for visualizing correlations 
+  tl.col = "black",  # Color of text labels
+  tl.srt = 45        # Rotation angle of text labels
+)
+
+# Distribution of target variable 'Depression (%)'
+ggplot(selected_data, aes(x = `Depression (%)`)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black") +
+  labs(title = "Figure 3. Distribution of Depression (%)", x = "Depression (%)", y = "Frequency")
+```
+
+```{r}
+rq1_bar <- plot_bar(selected_data)
+rq1_hist <- plot_histogram(selected_data)
+combined_plots <- grid.arrange(
+   grobs = c(rq1_bar, rq1_hist),
+  ncol = length(rq1_hist) + length(rq1_bar),
+  top="Fig 4. Overview of RQ1 selected Variables"
+)
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+rq2_bar <- plot_bar(logistic_data)
+rq2_hist <- plot_histogram(logistic_data)
+combined_plots <- grid.arrange(
+   grobs = c(rq2_bar, rq2_hist),
+  ncol = length(rq2_hist) + length(rq2_bar),
+  top="Fig 3. Overview of RQ2 selected Variables"
+)
+```
+
+## Appendix B: Summary Statistics Tables
 
 Table 1. Model Summary Statistics for Research Question 1.
 
@@ -705,18 +553,12 @@ coefficients <- as.data.frame(summary_lm$coefficients)
 kable(coefficients, align = 'c', caption = "Summary of Linear Regression Model", format = "markdown")
 ```
 
-## Appendix B: Predictions 
+Table 2. Model Summary Statistics for Research Question 2.
 
-***Research Question 1 Predictions:***
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+summary_lm <- summary(mod_cv)
+coefficients <- as.data.frame(summary_lm$coefficients)
+kable(coefficients, align = 'c', caption = "Summary of Linear Regression Model", format = "markdown")
+```
 
-1.  In a country categorized as part of the Americas continent, during the year 2015, with a log GDP per capita of 9.5, a social support categorized "High", a healthy life expectancy at birth of 70 years, freedom to make life choices of 0.7, generosity of 0.1, and perceptions of corruption at 0.05, the estimated depression percentage is predicted to be around 3.37%.
-
-2.  In a country situated in the Asia continent, during the year 2014, with a log GDP per capita of 10.0, a social support categorized as "Low", a healthy life expectancy at birth of 75 years, freedom to make life choices of 0.8, generosity of 0.2, and perceptions of corruption at 0.02, the estimated depression percentage is predicted to be approximately 4.08%.
-
-***Research Question 2 Predictions:***
-
-1\. In a country categorized as part of the Americas continent, during the year 2015, with a log GDP per capita of 3.0, a social support categorized as "Low," a healthy life expectancy at birth of 70 years, freedom to make life choices of 0.9, perceptions of corruption at 0.01, and the following mental health disorder percentages: Depression: 2.1%, Schizophrenia: 0.12%, Bipolar disorder: 0.1%, Eating disorders: 0.1%, Anxiety disorders: 0.11%, Alcohol use disorders: 0.1%, and Drug use disorders: 0.1%
-
-2\. In a country situated in the Asia continent, during the year 2014, with a log GDP per capita of 10.0, a social support categorized as "High," a healthy life expectancy at birth of 75 years, freedom to make life choices of 0.8, perceptions of corruption at 0.02, and the following mental health disorder percentages: Depression: 3.6%, Schizophrenia: 0.4%, Bipolar disorder: 0.5%, Eating disorders: 0.7%, Anxiety disorders: 0.12%, Alcohol use disorders: 0.3%, and Drug use disorders: 6%
-
-Case 1 is predicted to have "Bad QoL" while Case 2 is predicted to have "Good QoL."
+## 
