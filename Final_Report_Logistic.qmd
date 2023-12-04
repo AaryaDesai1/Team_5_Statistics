@@ -288,7 +288,7 @@ To recap the components of the second research question, the response variable c
 ### Logistic Regression Model Output Summary
 
 | Variable                                  | Estimate  | Std. Error | z value | Pr(\>           |
-|---------------|---------------|---------------|---------------|---------------|
+|-------------------------------------------|-----------|------------|---------|-----------------|
 | Intercept                                 | -52.35236 | 67.33324   | -0.778  | 0.4369          |
 | Depression (%)                            | -1.09615  | 0.26180    | -4.187  | 2.83e-05 \*\*\* |
 | Schizophrenia (%)                         | 10.07029  | 5.55143    | 1.814   | 0.0697 .        |
